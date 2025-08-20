@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificado de Conclusão</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .certificate {
+            background: white;
+            padding: 60px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+        }
+        .header {
+            margin-bottom: 40px;
+        }
+        .logo {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        .title {
+            font-size: 36px;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .subtitle {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+        .content {
+            margin: 40px 0;
+            line-height: 1.8;
+        }
+        .student-name {
+            font-size: 32px;
+            color: #667eea;
+            font-weight: bold;
+            margin: 20px 0;
+            text-transform: uppercase;
+        }
+        .course-info {
+            font-size: 20px;
+            color: #333;
+            margin: 20px 0;
+        }
+        .date {
+            font-size: 18px;
+            color: #666;
+            margin: 20px 0;
+        }
+        .signature {
+            margin-top: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .signature-line {
+            border-top: 2px solid #333;
+            width: 200px;
+            text-align: center;
+            padding-top: 10px;
+        }
+        .footer {
+            margin-top: 40px;
+            font-size: 14px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="certificate">
+        <div class="header">
+            <div class="logo">🎓</div>
+            <div class="title">Certificado de Conclusão</div>
+            <div class="subtitle">Decofier - Sistema de Certificados Digitais</div>
+        </div>
+        
+        <div class="content">
+            <p>Certificamos que</p>
+            <div class="student-name">{{nome}}</div>
+            <p>concluiu com êxito o curso de</p>
+            <div class="course-info">{{curso}}</div>
+            <p>com carga horária de</p>
+            <div class="course-info">{{carga_horaria}} horas</div>
+            <p>concluído em</p>
+            <div class="date">{{data_conclusao}}</div>
+        </div>
+        
+        <div class="signature">
+            <div>
+                <div class="signature-line">Coordenador</div>
+            </div>
+            <div>
+                <div class="signature-line">Diretor</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Este certificado possui validade oficial e pode ser verificado online</p>
+            <p>Código de verificação: {{codigo_verificacao}}</p>
+        </div>
+    </div>
+</body>
+</html>

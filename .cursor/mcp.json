@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "deco-certifi": {
+      "type": "http",
+      "url": "https://localhost-659c6049.deco.host/mcp"
+    }
+  }
+}

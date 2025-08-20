@@ -1,0 +1,6 @@
+nome,email,curso,carga_horaria,data_conclusao,codigo_verificacao
+João Silva,joao.silva@email.com,Matemática Avançada,120,2025-01-15,CERT001
+Maria Santos,maria.santos@email.com,Física Quântica,150,2025-01-20,CERT002
+Pedro Oliveira,pedro.oliveira@email.com,Programação Python,80,2025-01-25,CERT003
+Ana Costa,ana.costa@email.com,História da Arte,90,2025-01-30,CERT004
+Carlos Ferreira,carlos.ferreira@email.com,Química Orgânica,110,2025-02-05,CERT005
