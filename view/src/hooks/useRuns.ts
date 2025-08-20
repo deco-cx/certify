@@ -13,10 +13,10 @@ export const useListarRuns = (turmaId: number) => {
 };
 
 // Hook para buscar run por ID
-export const useBuscarRunPorId = (id: number) => {
+export const useBuscarRunPorId = (id: number | null) => {
   return useQuery({
     queryKey: ["run", id],
-    queryFn: () => client.BUSCAR_RUN_POR_ID({ id }),
+    queryFn: () => client.BUSCAR_RUN_POR_ID({ id: id! }),
     enabled: !!id,
     staleTime: 5 * 60 * 1000, // 5 minutos
   });

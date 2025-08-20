@@ -6,7 +6,6 @@ import {
   CheckCircle,
   Download,
   ExternalLink,
-  Share2,
   Shield,
 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
@@ -18,6 +17,8 @@ import {
   useGerarPdfCertificado,
   useGerarPngCertificado,
 } from "@/hooks/useCertificados";
+import { useBuscarRunPorId } from "@/hooks/useRuns";
+import { LinkedInButton } from "@/components/linkedin-button";
 
 function CertificadoPage() {
   const { id } = useParams({ from: "/certificado/$id" });
@@ -33,6 +34,9 @@ function CertificadoPage() {
 
   const certificado = certificadoData?.certificado;
   const htmlContent = certificado?.html;
+
+  // Buscar dados da run para o título do certificado
+  const { data: runData } = useBuscarRunPorId(certificado?.runId || null);
 
   const handleDownloadPdf = async () => {
     if (!certificado) return;
@@ -106,17 +110,22 @@ function CertificadoPage() {
     }
   };
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: `Certificado - ${certificado?.nome}`,
-        url: window.location.href,
-      });
-    } else {
-      // Fallback para copiar URL
-      navigator.clipboard.writeText(window.location.href);
-      alert("Link copiado para a área de transferência!");
-    }
+  // Função para preparar dados para o LinkedIn
+  const getLinkedInData = () => {
+    if (!certificado || !runData) return null;
+
+    const currentDate = new Date(certificado.criadoEm);
+    const certificateName = runData.run?.nome || "Certificado de Participação";
+    const organizationName = "deco"; // Nome da organização para o LinkedIn
+
+    return {
+      organizationName,
+      certificateName,
+      issueYear: currentDate.getFullYear(),
+      issueMonth: currentDate.getMonth() + 1, // LinkedIn usa 1-12
+      certId: certificado.id,
+      certUrl: window.location.href,
+    };
   };
 
   const handleIframeLoad = () => {
@@ -160,11 +169,10 @@ function CertificadoPage() {
             {/* Title and info section */}
             <div className="space-y-2">
               <h1 className="text-lg font-semibold text-gray-900 leading-tight">
-                Certificado de {certificado.nome || `Aluno ${certificado.id}`}
+                {runData?.run?.nome || "Certificado"}
               </h1>
               <p className="text-sm text-gray-600">
-                Gerado em{" "}
-                {new Date(certificado.criadoEm).toLocaleDateString("pt-BR")}
+                Certificado de {certificado.nome || `Aluno ${certificado.id}`}
               </p>
               {/* Status badges */}
               <div className="flex flex-wrap items-center gap-2">
@@ -205,14 +213,12 @@ function CertificadoPage() {
                 </span>
               </Button>
 
-              <Button
-                variant="outline"
-                onClick={handleShare}
-                className="flex flex-col items-center gap-1 py-3 px-2 h-auto"
-              >
-                <Share2 className="h-4 w-4" />
-                <span className="text-xs font-medium">Compartilhar</span>
-              </Button>
+              {getLinkedInData() && (
+                <LinkedInButton
+                  {...getLinkedInData()!}
+                  className="flex flex-col items-center gap-1 py-3 px-2 h-auto w-full"
+                />
+              )}
             </div>
 
             {/* Fallback download links - Mobile */}
@@ -256,12 +262,10 @@ function CertificadoPage() {
               <div className="flex-1 space-y-3">
                 <div className="space-y-1">
                   <h1 className="text-2xl font-bold text-gray-900">
-                    Certificado de{" "}
-                    {certificado.nome || `Aluno ${certificado.id}`}
+                    {runData?.run?.nome || "Certificado"}
                   </h1>
                   <p className="text-sm text-gray-600">
-                    Gerado em{" "}
-                    {new Date(certificado.criadoEm).toLocaleDateString("pt-BR")}
+                    Certificado de {certificado.nome || `Aluno ${certificado.id}`}
                   </p>
                 </div>
 
@@ -312,14 +316,13 @@ function CertificadoPage() {
                   </span>
                 </Button>
 
-                <Button
-                  variant="outline"
-                  onClick={handleShare}
-                  className="flex items-center gap-2 px-4 py-2 h-10 bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 hover:border-gray-300 transition-all duration-200"
-                >
-                  <Share2 className="h-4 w-4" />
-                  <span className="font-medium">Compartilhar</span>
-                </Button>
+                {getLinkedInData() && (
+                  <LinkedInButton
+                    {...getLinkedInData()!}
+                    variant="desktop"
+                    className="flex items-center gap-2 px-4 py-2 h-10 border-0"
+                  />
+                )}
               </div>
             </div>
 
@@ -390,7 +393,7 @@ function CertificadoPage() {
                       id="certificate-iframe"
                       srcDoc={htmlContent}
                       className="w-full h-full border-none bg-white"
-                      title={`Certificado de ${certificado.nome || "aluno"}`}
+                      title={runData?.run?.nome || "Certificado"}
                       onLoad={handleIframeLoad}
                       style={{ display: iframeLoading ? "none" : "block" }}
                     />
