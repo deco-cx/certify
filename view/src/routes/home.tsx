@@ -310,7 +310,7 @@ function HomeWithAuth() {
     <LoggedProvider>
       <HomePage />
     </LoggedProvider>
-  )
+  );
 }
 
 // Export function that creates the route

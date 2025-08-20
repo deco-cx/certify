@@ -13,8 +13,8 @@ import type { CreateMCPServerOptions } from "@deco/workers-runtime/mastra";
 export const views: CreateMCPServerOptions<Env, typeof StateSchema>["views"] =
   () => [
     {
-        title: "Certify",
-        icon: "badge",
-        url: "https://deco-certify.deco.page",
+      title: "Certify",
+      icon: "badge",
+      url: "https://deco-certify.deco.page",
     },
   ];

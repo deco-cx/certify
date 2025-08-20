@@ -24,9 +24,10 @@ export type Env = DefaultEnv & DecoEnv & {
     fetch: (request: Request) => Promise<Response>;
   };
   /**
-   * API key for API2PDF for local development
+   * API key for API2PDF for fallback on the
+   * state schema. Useful for local development.
    */
-  LOCAL_API2PDF_API_KEY?: string;
+  API2PDF_API_KEY?: string;
 };
 
 const fallbackToView =

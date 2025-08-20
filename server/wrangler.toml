@@ -15,9 +15,14 @@ enable_workflows = true
 local = false
 
 [[deco.bindings]]
+name = "DATABASE"
+type = "mcp"
+integration_id = "i:databases-management"
+
+[[deco.bindings]]
 name = "RESEND"
 type = "mcp"
-integration_name = "@deco/resend"
+integration_id = "i:ef0a00a0-8a85-4beb-845f-190e86f2f8b0"
 
 [[migrations]]
 tag = "v1"

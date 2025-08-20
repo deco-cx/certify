@@ -2,7 +2,13 @@ import { createRoute, type RootRoute } from "@tanstack/react-router";
 import { useParams } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Download, Share2, Shield } from "lucide-react";
+import {
+  CheckCircle,
+  Download,
+  ExternalLink,
+  Share2,
+  Shield,
+} from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -17,6 +23,8 @@ function CertificadoPage() {
   const { id } = useParams({ from: "/certificado/$id" });
   const navigate = useNavigate();
   const [iframeLoading, setIframeLoading] = useState(true);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pngUrl, setPngUrl] = useState<string | null>(null);
 
   const { data: certificadoData, isLoading: isLoadingCertificado } =
     useBuscarCertificadoPorId(id);
@@ -35,9 +43,20 @@ function CertificadoPage() {
       const result = await gerarPdfMutation.mutateAsync({ id: certificado.id });
 
       if (result.pdfUrl) {
-        // Open the PDF URL in a new tab/window to download
-        window.open(result.pdfUrl, "_blank");
-        toast.success("PDF gerado com sucesso!");
+        // Store the URL for fallback
+        setPdfUrl(result.pdfUrl);
+
+        // Try to open the PDF URL in a new tab/window
+        const opened = window.open(result.pdfUrl, "_blank");
+
+        if (opened) {
+          toast.success("PDF gerado com sucesso!");
+        } else {
+          // If window.open failed (blocked by popup blocker)
+          toast.success(
+            "PDF gerado! Use o link abaixo se não abriu automaticamente.",
+          );
+        }
       } else {
         throw new Error("URL do PDF não foi retornada");
       }
@@ -60,9 +79,20 @@ function CertificadoPage() {
       const result = await gerarPngMutation.mutateAsync({ id: certificado.id });
 
       if (result.pngUrl) {
-        // Open the PNG URL in a new tab/window to download
-        window.open(result.pngUrl, "_blank");
-        toast.success("PNG gerado com sucesso!");
+        // Store the URL for fallback
+        setPngUrl(result.pngUrl);
+
+        // Try to open the PNG URL in a new tab/window
+        const opened = window.open(result.pngUrl, "_blank");
+
+        if (opened) {
+          toast.success("PNG gerado com sucesso!");
+        } else {
+          // If window.open failed (blocked by popup blocker)
+          toast.success(
+            "PNG gerado! Use o link abaixo se não abriu automaticamente.",
+          );
+        }
       } else {
         throw new Error("URL do PNG não foi retornada");
       }
@@ -184,6 +214,39 @@ function CertificadoPage() {
                 <span className="text-xs font-medium">Compartilhar</span>
               </Button>
             </div>
+
+            {/* Fallback download links - Mobile */}
+            {(pdfUrl || pngUrl) && (
+              <div className="space-y-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-xs text-blue-800 font-medium">
+                  Links diretos para download:
+                </p>
+                <div className="space-y-1">
+                  {pdfUrl && (
+                    <a
+                      href={pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-xs text-blue-700 hover:text-blue-900 underline"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      Baixar PDF
+                    </a>
+                  )}
+                  {pngUrl && (
+                    <a
+                      href={pngUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-xs text-blue-700 hover:text-blue-900 underline"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      Baixar PNG
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Desktop layout */}
@@ -193,23 +256,28 @@ function CertificadoPage() {
               <div className="flex-1 space-y-3">
                 <div className="space-y-1">
                   <h1 className="text-2xl font-bold text-gray-900">
-                    Certificado de {certificado.nome || `Aluno ${certificado.id}`}
+                    Certificado de{" "}
+                    {certificado.nome || `Aluno ${certificado.id}`}
                   </h1>
                   <p className="text-sm text-gray-600">
                     Gerado em{" "}
                     {new Date(certificado.criadoEm).toLocaleDateString("pt-BR")}
                   </p>
                 </div>
-                
+
                 {/* Status badges */}
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 text-green-700 rounded-lg">
                     <Shield className="h-4 w-4" />
-                    <span className="text-sm font-medium">Certificado Válido</span>
+                    <span className="text-sm font-medium">
+                      Certificado Válido
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg">
                     <CheckCircle className="h-4 w-4" />
-                    <span className="text-sm font-medium">Verificado pela Decofier</span>
+                    <span className="text-sm font-medium">
+                      Verificado pela Decofier
+                    </span>
                   </div>
                 </div>
               </div>
@@ -224,7 +292,9 @@ function CertificadoPage() {
                 >
                   <Download className="h-4 w-4" />
                   <span className="font-medium">
-                    {gerarPdfMutation.isPending ? "Gerando PDF..." : "Baixar PDF"}
+                    {gerarPdfMutation.isPending
+                      ? "Gerando PDF..."
+                      : "Baixar PDF"}
                   </span>
                 </Button>
 
@@ -236,7 +306,9 @@ function CertificadoPage() {
                 >
                   <Download className="h-4 w-4" />
                   <span className="font-medium">
-                    {gerarPngMutation.isPending ? "Gerando PNG..." : "Baixar PNG"}
+                    {gerarPngMutation.isPending
+                      ? "Gerando PNG..."
+                      : "Baixar PNG"}
                   </span>
                 </Button>
 
@@ -250,6 +322,39 @@ function CertificadoPage() {
                 </Button>
               </div>
             </div>
+
+            {/* Fallback download links - Desktop */}
+            {(pdfUrl || pngUrl) && (
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800 font-medium mb-2">
+                  Links diretos para download:
+                </p>
+                <div className="flex items-center gap-4">
+                  {pdfUrl && (
+                    <a
+                      href={pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-blue-700 hover:text-blue-900 underline transition-colors"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Baixar PDF
+                    </a>
+                  )}
+                  {pngUrl && (
+                    <a
+                      href={pngUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-blue-700 hover:text-blue-900 underline transition-colors"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Baixar PNG
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </header>

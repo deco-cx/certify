@@ -1,12 +1,16 @@
 # 🎓 Certify - Digital Certificate Management Platform
 
-A comprehensive platform for generating, managing, and verifying digital certificates with customizable HTML templates, built with Deco + Cloudflare Workers.
+A comprehensive platform for generating, managing, and verifying digital
+certificates with customizable HTML templates, built with Deco + Cloudflare
+Workers.
 
 ## ✨ Key Features
 
 - **Custom HTML Templates**: Create unique certificates with HTML and CSS
-- **Batch Processing**: Generate hundreds of certificates simultaneously via CSV upload
-- **Online Verification**: Official verification system with unique URLs for each certificate
+- **Batch Processing**: Generate hundreds of certificates simultaneously via CSV
+  upload
+- **Online Verification**: Official verification system with unique URLs for
+  each certificate
 - **Class Management**: Organize projects by classes/groups (turmas)
 - **Email Campaigns**: Integrated system for automatic certificate distribution
 - **PDF & PNG Export**: Generate certificates in multiple formats using API2PDF
@@ -15,25 +19,30 @@ A comprehensive platform for generating, managing, and verifying digital certifi
 ## 🚀 How It Works
 
 ### 1. **Create a Class (Turma)**
+
 - Access the "Classes" section and create a new class for your project
 - Add description and organize your certificate projects
 
 ### 2. **Upload HTML Template**
+
 - Upload an HTML file with placeholders like `{{name}}`, `{{email}}`, etc.
 - The system will automatically replace placeholders with student data
 - Preview and customize your certificate design
 
 ### 3. **Upload CSV Data**
+
 - Upload a CSV file with student information
 - Specify which columns contain names, emails, and other data
 - Map CSV columns to template placeholders
 
 ### 4. **Create Certificate Run**
+
 - Execute batch generation by creating a "run"
 - The system creates unique certificates for each student
 - Track progress and status of certificate generation
 
 ### 5. **Online Verification & Distribution**
+
 - Each certificate receives a unique verification URL
 - Certificates can be shared and verified online
 - Send certificates via email campaigns
@@ -64,7 +73,8 @@ certifier/
 
 ## 🛠️ Technology Stack
 
-- **Frontend**: React 18, TypeScript, Tailwind CSS, TanStack Router, TanStack Query
+- **Frontend**: React 18, TypeScript, Tailwind CSS, TanStack Router, TanStack
+  Query
 - **Backend**: Deco MCP Server, Cloudflare Workers, Drizzle ORM
 - **Database**: SQLite (Cloudflare Durable Objects)
 - **UI Components**: shadcn/ui, Lucide React icons
@@ -73,7 +83,8 @@ certifier/
 
 ## 📊 Database Schema
 
-The application uses a comprehensive database schema with the following entities:
+The application uses a comprehensive database schema with the following
+entities:
 
 - **Turmas** (Classes): Organize certificate projects
 - **Templates**: Store HTML certificate templates with placeholders
@@ -159,6 +170,7 @@ This project is developed by Deco for educational and internal use.
 
 ---
 
-**Certify** - Transforming how you generate and manage digital certificates! 🎓✨
+**Certify** - Transforming how you generate and manage digital certificates!
+🎓✨
 
-*Built with ❤️ by the Deco team*
+_Built with ❤️ by the Deco team_

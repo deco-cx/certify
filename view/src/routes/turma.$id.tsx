@@ -540,7 +540,7 @@ function TurmaDetalhesWithAuth() {
     <LoggedProvider>
       <TurmaDetalhesPage />
     </LoggedProvider>
-  )
+  );
 }
 
 // Export function that creates the route

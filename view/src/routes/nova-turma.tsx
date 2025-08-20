@@ -231,7 +231,7 @@ function NovaTurmaWithAuth() {
     <LoggedProvider>
       <NovaTurmaPage />
     </LoggedProvider>
-  )
+  );
 }
 
 // Export function that creates the route

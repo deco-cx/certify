@@ -8,7 +8,7 @@
  * - Deleting certificates (private)
  * - Generating PDF and PNG certificates (public)
  */
-import { createTool, createPrivateTool } from "@deco/workers-runtime/mastra";
+import { createPrivateTool, createTool } from "@deco/workers-runtime/mastra";
 import { z } from "zod";
 import { and, eq, isNull } from "drizzle-orm";
 import { getDb } from "../db.ts";
@@ -440,7 +440,7 @@ export const createDeletarCertificadoTool = (env: Env) =>
 
 const getApi2pdfApiKey = (env: Env) => {
   const key = env.DECO_CHAT_REQUEST_CONTEXT.state?.api2pdfApiKey ||
-    env.LOCAL_API2PDF_API_KEY;
+    env.API2PDF_API_KEY;
 
   if (!key) {
     throw new Error("App not properly configured");
