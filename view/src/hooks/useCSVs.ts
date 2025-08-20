@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { client } from "../lib/rpc";
 
 // Hook para listar CSVs de uma turma
@@ -24,7 +24,7 @@ export const useBuscarCSVPorId = (id: number) => {
 // Hook para criar CSV
 export const useCriarCSV = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: {
       turmaId: number;
@@ -33,11 +33,11 @@ export const useCriarCSV = () => {
       colunas: string;
       templateId?: number;
     }) => client.CRIAR_CSV(data),
-    
+
     onSuccess: (data, variables) => {
       // Invalidate CSVs list for the turma
       queryClient.invalidateQueries({ queryKey: ["csvs", variables.turmaId] });
-      
+
       // Invalidate turma data to refresh counts
       queryClient.invalidateQueries({ queryKey: ["turma", variables.turmaId] });
     },
@@ -47,7 +47,7 @@ export const useCriarCSV = () => {
 // Hook para atualizar CSV
 export const useAtualizarCSV = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: {
       id: number;
@@ -57,11 +57,11 @@ export const useAtualizarCSV = () => {
       templateId?: number;
       processadoEm?: string;
     }) => client.ATUALIZAR_CSV(data),
-    
+
     onSuccess: (data, variables) => {
       // Invalidate specific CSV
       queryClient.invalidateQueries({ queryKey: ["csv", variables.id] });
-      
+
       // Invalidate CSVs list (we need to get turmaId from the response)
       // This will be handled by the component using the hook
     },
@@ -71,14 +71,14 @@ export const useAtualizarCSV = () => {
 // Hook para deletar CSV
 export const useDeletarCSV = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: { id: number }) => client.DELETAR_CSV(data),
-    
+
     onSuccess: (data, variables) => {
       // Invalidate specific CSV
       queryClient.invalidateQueries({ queryKey: ["csv", variables.id] });
-      
+
       // Note: We can't invalidate the list without knowing the turmaId
       // The component using this hook should handle list invalidation
     },

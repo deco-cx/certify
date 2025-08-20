@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { client } from "../lib/rpc";
 import { toast } from "sonner";
 
@@ -25,7 +25,7 @@ export const useBuscarRunPorId = (id: number) => {
 // Hook para criar run
 export const useCriarRun = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: {
       turmaId: number;
@@ -33,12 +33,13 @@ export const useCriarRun = () => {
       templateId: number;
       csvId: number;
       nameColumn: string;
+      emailColumn: string;
     }) => client.CRIAR_RUN(data),
-    
+
     onSuccess: (data, variables) => {
       // Invalidate runs list for the turma
       queryClient.invalidateQueries({ queryKey: ["runs", variables.turmaId] });
-      
+
       // Invalidate turma data to refresh counts
       queryClient.invalidateQueries({ queryKey: ["turma", variables.turmaId] });
     },
@@ -48,7 +49,7 @@ export const useCriarRun = () => {
 // Hook para atualizar run
 export const useAtualizarRun = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: {
       id: number;
@@ -58,11 +59,11 @@ export const useAtualizarRun = () => {
       iniciadoEm?: string;
       concluidoEm?: string;
     }) => client.ATUALIZAR_RUN(data),
-    
+
     onSuccess: (data, variables) => {
       // Invalidate specific run
       queryClient.invalidateQueries({ queryKey: ["run", variables.id] });
-      
+
       // Invalidate runs list (we need to get turmaId from the response)
       // This will be handled by the component using the hook
     },
@@ -72,14 +73,14 @@ export const useAtualizarRun = () => {
 // Hook para deletar run
 export const useDeletarRun = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: { id: number }) => client.DELETAR_RUN(data),
-    
+
     onSuccess: (data, variables) => {
       // Invalidate specific run
       queryClient.invalidateQueries({ queryKey: ["run", variables.id] });
-      
+
       // Note: We can't invalidate the list without knowing the turmaId
       // The component using this hook should handle list invalidation
     },
@@ -88,14 +89,14 @@ export const useDeletarRun = () => {
 
 export const useExecutarRun = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (input: { runId: number }) => client.EXECUTAR_RUN(input),
     onSuccess: (data: any, variables) => {
       // Invalidate related queries after successful execution
       queryClient.invalidateQueries({ queryKey: ["runs"] });
       queryClient.invalidateQueries({ queryKey: ["certificados"] });
-      
+
       // Show success message
       toast.success(data.message);
     },

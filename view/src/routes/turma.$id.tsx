@@ -1,17 +1,37 @@
-import { createRoute, type RootRoute, useNavigate, useParams } from "@tanstack/react-router";
+import {
+  createRoute,
+  type RootRoute,
+  useNavigate,
+  useParams,
+} from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, FileText, Upload, Users, Play, Mail, Trash2, Eye } from "lucide-react";
+import {
+  ArrowLeft,
+  Eye,
+  FileText,
+  Mail,
+  Trash2,
+  Upload,
+  Users,
+} from "lucide-react";
 import { toast } from "sonner";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { client } from "@/lib/rpc";
 import { UploadTemplate } from "@/components/upload-template";
 import { UploadCSV } from "@/components/upload-csv";
 import { ViewTemplate } from "@/components/view-template";
 import { RunsList } from "@/components/runs-list";
 import { CertificadosList } from "@/components/certificados-list";
+import LoggedProvider from "@/components/logged-provider";
 
 function TurmaDetalhesPage() {
   const navigate = useNavigate();
@@ -34,12 +54,12 @@ function TurmaDetalhesPage() {
   };
 
   const formatarData = (timestamp: string) => {
-    return new Date(timestamp).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(timestamp).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -47,7 +67,8 @@ function TurmaDetalhesPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4">
+          </div>
           <p className="text-gray-600">Carregando...</p>
         </div>
       </div>
@@ -58,8 +79,12 @@ function TurmaDetalhesPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Turma não encontrada</h2>
-          <p className="text-gray-600 mb-4">A turma solicitada não foi encontrada.</p>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Turma não encontrada
+          </h2>
+          <p className="text-gray-600 mb-4">
+            A turma solicitada não foi encontrada.
+          </p>
           <Button onClick={handleBack}>Voltar</Button>
         </div>
       </div>
@@ -83,7 +108,9 @@ function TurmaDetalhesPage() {
                 Voltar
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{turma.nome}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {turma.nome}
+                </h1>
                 <p className="text-sm text-gray-600">
                   {turma.descricao || "Gerenciar projetos de certificados"}
                 </p>
@@ -109,15 +136,23 @@ function TurmaDetalhesPage() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Criada em</p>
-                  <p className="text-lg text-gray-900">{formatarData(turma.criadoEm)}</p>
+                  <p className="text-lg text-gray-900">
+                    {formatarData(turma.criadoEm)}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Última atualização</p>
-                  <p className="text-lg text-gray-900">{formatarData(turma.atualizadoEm)}</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Última atualização
+                  </p>
+                  <p className="text-lg text-gray-900">
+                    {formatarData(turma.atualizadoEm)}
+                  </p>
                 </div>
                 {turma.descricao && (
                   <div className="md:col-span-3">
-                    <p className="text-sm font-medium text-gray-500">Descrição</p>
+                    <p className="text-sm font-medium text-gray-500">
+                      Descrição
+                    </p>
                     <p className="text-gray-900">{turma.descricao}</p>
                   </div>
                 )}
@@ -149,8 +184,8 @@ function TurmaDetalhesPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <TemplatesList 
-                  turmaId={turma.id} 
+                <TemplatesList
+                  turmaId={turma.id}
                   onShowUpload={() => setShowUploadTemplate(true)}
                   onViewTemplate={(template) => {
                     setSelectedTemplate(template);
@@ -174,8 +209,8 @@ function TurmaDetalhesPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <CSVsList 
-                  turmaId={turma.id} 
+                <CSVsList
+                  turmaId={turma.id}
                   onShowUpload={() => setShowUploadCSV(true)}
                 />
               </CardContent>
@@ -213,9 +248,10 @@ function TurmaDetalhesPage() {
                   <p className="text-gray-600 mb-6">
                     Primeiro, gere os certificados para então enviar por email
                   </p>
-                  <Button 
-                    disabled 
-                    onClick={() => toast.info("Funcionalidade em desenvolvimento")}
+                  <Button
+                    disabled
+                    onClick={() =>
+                      toast.info("Funcionalidade em desenvolvimento")}
                   >
                     <Mail className="h-4 w-4 mr-2" />
                     Criar Campanha
@@ -229,28 +265,28 @@ function TurmaDetalhesPage() {
 
       {/* Modal de Upload de Template */}
       {showUploadTemplate && (
-        <UploadTemplate 
-          turmaId={turma.id} 
-          onClose={() => setShowUploadTemplate(false)} 
+        <UploadTemplate
+          turmaId={turma.id}
+          onClose={() => setShowUploadTemplate(false)}
         />
       )}
 
       {/* Modal de Upload de CSV */}
       {showUploadCSV && (
-        <UploadCSV 
-          turmaId={turma.id} 
-          onClose={() => setShowUploadCSV(false)} 
+        <UploadCSV
+          turmaId={turma.id}
+          onClose={() => setShowUploadCSV(false)}
         />
       )}
 
       {/* Modal de Visualização de Template */}
       {showViewTemplate && selectedTemplate && (
-        <ViewTemplate 
+        <ViewTemplate
           template={selectedTemplate}
           onClose={() => {
             setShowViewTemplate(false);
             setSelectedTemplate(null);
-          }} 
+          }}
         />
       )}
     </div>
@@ -258,8 +294,8 @@ function TurmaDetalhesPage() {
 }
 
 // Componente para listar templates
-function TemplatesList({ turmaId, onShowUpload, onViewTemplate }: { 
-  turmaId: number; 
+function TemplatesList({ turmaId, onShowUpload, onViewTemplate }: {
+  turmaId: number;
   onShowUpload: () => void;
   onViewTemplate: (template: any) => void;
 }) {
@@ -287,19 +323,20 @@ function TemplatesList({ turmaId, onShowUpload, onViewTemplate }: {
   const templates = templatesData?.templates || [];
 
   const formatarData = (timestamp: string) => {
-    return new Date(timestamp).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(timestamp).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   if (isLoading) {
     return (
       <div className="text-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4">
+        </div>
         <p className="text-gray-600">Carregando templates...</p>
       </div>
     );
@@ -352,7 +389,8 @@ function TemplatesList({ turmaId, onShowUpload, onViewTemplate }: {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => onViewTemplate(template)}
+                  onClick={() =>
+                    onViewTemplate(template)}
                 >
                   <Eye className="h-4 w-4 mr-2" />
                   Visualizar
@@ -360,7 +398,8 @@ function TemplatesList({ turmaId, onShowUpload, onViewTemplate }: {
                 <Button
                   variant="destructive"
                   size="sm"
-                  onClick={() => deletarTemplateMutation.mutate(template.id)}
+                  onClick={() =>
+                    deletarTemplateMutation.mutate(template.id)}
                   disabled={deletarTemplateMutation.isPending}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -375,7 +414,9 @@ function TemplatesList({ turmaId, onShowUpload, onViewTemplate }: {
 }
 
 // Componente para listar CSVs
-function CSVsList({ turmaId, onShowUpload }: { turmaId: number; onShowUpload: () => void }) {
+function CSVsList(
+  { turmaId, onShowUpload }: { turmaId: number; onShowUpload: () => void },
+) {
   const queryClient = useQueryClient();
 
   // Buscar CSVs da turma
@@ -400,19 +441,20 @@ function CSVsList({ turmaId, onShowUpload }: { turmaId: number; onShowUpload: ()
   const csvs = csvsData?.csvs || [];
 
   const formatarData = (timestamp: string) => {
-    return new Date(timestamp).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(timestamp).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   if (isLoading) {
     return (
       <div className="text-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4">
+        </div>
         <p className="text-gray-600">Carregando CSVs...</p>
       </div>
     );
@@ -470,7 +512,8 @@ function CSVsList({ turmaId, onShowUpload }: { turmaId: number; onShowUpload: ()
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => toast.info("Funcionalidade em desenvolvimento")}
+                  onClick={() =>
+                    toast.info("Funcionalidade em desenvolvimento")}
                 >
                   <Eye className="h-4 w-4 mr-2" />
                   Visualizar
@@ -492,10 +535,18 @@ function CSVsList({ turmaId, onShowUpload }: { turmaId: number; onShowUpload: ()
   );
 }
 
+function TurmaDetalhesWithAuth() {
+  return (
+    <LoggedProvider>
+      <TurmaDetalhesPage />
+    </LoggedProvider>
+  )
+}
+
 // Export function that creates the route
 export default (parentRoute: RootRoute) =>
   createRoute({
     path: "/turma/$id",
-    component: TurmaDetalhesPage,
+    component: TurmaDetalhesWithAuth,
     getParentRoute: () => parentRoute,
   });

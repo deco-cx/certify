@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { client } from "../lib/rpc";
 
 // Hook para listar templates de uma turma
@@ -24,7 +24,7 @@ export const useBuscarTemplatePorId = (id: number) => {
 // Hook para criar template
 export const useCriarTemplate = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: {
       turmaId: number;
@@ -34,11 +34,13 @@ export const useCriarTemplate = () => {
       tipo?: string;
       campos?: string;
     }) => client.CRIAR_TEMPLATE(data),
-    
+
     onSuccess: (data, variables) => {
       // Invalidate templates list for the turma
-      queryClient.invalidateQueries({ queryKey: ["templates", variables.turmaId] });
-      
+      queryClient.invalidateQueries({
+        queryKey: ["templates", variables.turmaId],
+      });
+
       // Invalidate turma data to refresh counts
       queryClient.invalidateQueries({ queryKey: ["turma", variables.turmaId] });
     },
@@ -48,7 +50,7 @@ export const useCriarTemplate = () => {
 // Hook para atualizar template
 export const useAtualizarTemplate = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: {
       id: number;
@@ -58,11 +60,11 @@ export const useAtualizarTemplate = () => {
       tipo?: string;
       campos?: string;
     }) => client.ATUALIZAR_TEMPLATE(data),
-    
+
     onSuccess: (data, variables) => {
       // Invalidate specific template
       queryClient.invalidateQueries({ queryKey: ["template", variables.id] });
-      
+
       // Invalidate templates list (we need to get turmaId from the response)
       // This will be handled by the component using the hook
     },
@@ -72,14 +74,14 @@ export const useAtualizarTemplate = () => {
 // Hook para deletar template
 export const useDeletarTemplate = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: { id: number }) => client.DELETAR_TEMPLATE(data),
-    
+
     onSuccess: (data, variables) => {
       // Invalidate specific template
       queryClient.invalidateQueries({ queryKey: ["template", variables.id] });
-      
+
       // Note: We can't invalidate the list without knowing the turmaId
       // The component using this hook should handle list invalidation
     },

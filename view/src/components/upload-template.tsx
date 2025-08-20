@@ -3,8 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { X, Upload, FileText, AlertCircle } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { AlertCircle, FileText, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { client } from "@/lib/rpc";
@@ -22,8 +28,9 @@ export function UploadTemplate({ turmaId, onClose }: UploadTemplateProps) {
 
   // Criar template
   const criarTemplateMutation = useMutation({
-    mutationFn: (data: { turmaId: number; nome: string; arquivoUrl: string; campos?: string }) =>
-      client.CRIAR_TEMPLATE(data),
+    mutationFn: (
+      data: { turmaId: number; nome: string; html: string; campos?: string },
+    ) => client.CRIAR_TEMPLATE(data),
     onSuccess: () => {
       toast.success("Template criado com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["templates", turmaId] });
@@ -37,7 +44,7 @@ export function UploadTemplate({ turmaId, onClose }: UploadTemplateProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!nome.trim()) {
       toast.error("Nome do template é obrigatório");
       return;
@@ -49,19 +56,15 @@ export function UploadTemplate({ turmaId, onClose }: UploadTemplateProps) {
     }
 
     setIsUploading(true);
-    
+
     try {
-      // Simular upload de arquivo (por enquanto, armazenamos o HTML como string)
-      // Em produção, isso seria feito via upload real para storage
-      const arquivoUrl = `data:text/html;base64,${btoa(unescape(encodeURIComponent(htmlContent)))}`;
-      
       // Extrair campos do HTML (placeholders como {{nome}}, {{email}}, etc.)
       const campos = extrairCamposHTML(htmlContent);
-      
+
       await criarTemplateMutation.mutateAsync({
         turmaId,
         nome: nome.trim(),
-        arquivoUrl,
+        html: htmlContent,
         campos: campos.join(", "),
       });
     } catch (error) {
@@ -76,13 +79,13 @@ export function UploadTemplate({ turmaId, onClose }: UploadTemplateProps) {
     const regex = /\{\{([^}]+)\}\}/g;
     const campos: string[] = [];
     let match;
-    
+
     while ((match = regex.exec(html)) !== null) {
       if (!campos.includes(match[1])) {
         campos.push(match[1]);
       }
     }
-    
+
     return campos;
   };
 
@@ -90,7 +93,7 @@ export function UploadTemplate({ turmaId, onClose }: UploadTemplateProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.type !== "text/html" && !file.name.endsWith('.html')) {
+    if (file.type !== "text/html" && !file.name.endsWith(".html")) {
       toast.error("Por favor, selecione um arquivo HTML válido");
       return;
     }
@@ -99,10 +102,10 @@ export function UploadTemplate({ turmaId, onClose }: UploadTemplateProps) {
     reader.onload = (event) => {
       const content = event.target?.result as string;
       setHtmlContent(content);
-      
+
       // Auto-preencher nome se estiver vazio
       if (!nome.trim()) {
-        setNome(file.name.replace('.html', ''));
+        setNome(file.name.replace(".html", ""));
       }
     };
     reader.readAsText(file);
@@ -115,7 +118,8 @@ export function UploadTemplate({ turmaId, onClose }: UploadTemplateProps) {
           <div>
             <CardTitle className="text-xl">Upload de Template HTML</CardTitle>
             <CardDescription>
-              Faça upload de um arquivo HTML para criar um template de certificado
+              Faça upload de um arquivo HTML para criar um template de
+              certificado
             </CardDescription>
           </div>
           <Button
@@ -127,7 +131,7 @@ export function UploadTemplate({ turmaId, onClose }: UploadTemplateProps) {
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
-        
+
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Upload de arquivo */}
@@ -144,14 +148,16 @@ export function UploadTemplate({ turmaId, onClose }: UploadTemplateProps) {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => document.getElementById('file')?.click()}
+                  onClick={() => document.getElementById("file")?.click()}
                 >
                   <Upload className="h-4 w-4 mr-2" />
                   Selecionar
                 </Button>
               </div>
               <p className="text-xs text-gray-500">
-                Selecione um arquivo HTML com placeholders como {"{{nome}}"}, {"{{email}}"}, etc.
+                Selecione um arquivo HTML com placeholders como {"{{nome}}"},
+                {" "}
+                {"{{email}}"}, etc.
               </p>
             </div>
 
@@ -180,7 +186,8 @@ export function UploadTemplate({ turmaId, onClose }: UploadTemplateProps) {
                 <div className="flex items-center space-x-2 text-sm text-gray-600">
                   <AlertCircle className="h-4 w-4" />
                   <span>
-                    Campos detectados: {extrairCamposHTML(htmlContent).join(", ") || "Nenhum"}
+                    Campos detectados:{" "}
+                    {extrairCamposHTML(htmlContent).join(", ") || "Nenhum"}
                   </span>
                 </div>
               </div>
@@ -214,17 +221,20 @@ export function UploadTemplate({ turmaId, onClose }: UploadTemplateProps) {
                 disabled={isUploading || !nome.trim() || !htmlContent.trim()}
                 className="min-w-[120px]"
               >
-                {isUploading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Criando...
-                  </>
-                ) : (
-                  <>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Criar Template
-                  </>
-                )}
+                {isUploading
+                  ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2">
+                      </div>
+                      Criando...
+                    </>
+                  )
+                  : (
+                    <>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Criar Template
+                    </>
+                  )}
               </Button>
             </div>
           </form>

@@ -1,12 +1,18 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useListarRuns, useDeletarRun, useExecutarRun } from "@/hooks/useRuns";
+import { useDeletarRun, useExecutarRun, useListarRuns } from "@/hooks/useRuns";
 import { useListarTemplates } from "../hooks/useTemplates";
 import { useListarCSVs } from "../hooks/useCSVs";
 import { CreateRunModal } from "./create-run-modal";
-import { Play, Trash2, Eye, Download, ExternalLink } from "lucide-react";
+import { Download, ExternalLink, Eye, Play, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface RunsListProps {
@@ -93,11 +99,13 @@ export function RunsList({ turmaId }: RunsListProps) {
   };
 
   const getTemplateName = (templateId: number) => {
-    return templatesData?.templates?.find((t: any) => t.id === templateId)?.nome || "Template não encontrado";
+    return templatesData?.templates?.find((t: any) => t.id === templateId)
+      ?.nome || "Template não encontrado";
   };
 
   const getCSVName = (csvId: number) => {
-    return csvsData?.csvs?.find((c: any) => c.id === csvId)?.nome || "CSV não encontrado";
+    return csvsData?.csvs?.find((c: any) => c.id === csvId)?.nome ||
+      "CSV não encontrado";
   };
 
   if (isLoadingRuns) {
@@ -128,99 +136,109 @@ export function RunsList({ turmaId }: RunsListProps) {
         </div>
       </CardHeader>
       <CardContent>
-        {!runsData?.runs || runsData.runs.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <p>Nenhum run encontrado para esta turma.</p>
-            <p className="text-sm">Clique em "Novo Run" para começar.</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {runsData.runs.map((run: any) => (
-              <Card key={run.id} className="border-l-4 border-l-blue-500">
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-lg">{run.nome}</h3>
-                        <Badge className={getStatusColor(run.status)}>
-                          {getStatusText(run.status)}
-                        </Badge>
+        {!runsData?.runs || runsData.runs.length === 0
+          ? (
+            <div className="text-center py-8 text-gray-500">
+              <p>Nenhum run encontrado para esta turma.</p>
+              <p className="text-sm">Clique em "Novo Run" para começar.</p>
+            </div>
+          )
+          : (
+            <div className="space-y-4">
+              {runsData.runs.map((run: any) => (
+                <Card key={run.id} className="border-l-4 border-l-blue-500">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-semibold text-lg">{run.nome}</h3>
+                          <Badge className={getStatusColor(run.status)}>
+                            {getStatusText(run.status)}
+                          </Badge>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
+                          <div>
+                            <span className="font-medium">Template:</span>
+                            <p>{getTemplateName(run.templateId)}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium">CSV:</span>
+                            <p>{getCSVName(run.csvId)}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium">Coluna Nome:</span>
+                            <p>{run.nameColumn}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium">Progresso:</span>
+                            <p>{run.certificadosGerados} / {run.totalAlunos}</p>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 text-xs text-gray-500">
+                          <span>Criado: {formatDate(run.criadoEm)}</span>
+                          {run.iniciadoEm && (
+                            <span className="ml-4">
+                              Iniciado: {formatDate(run.iniciadoEm)}
+                            </span>
+                          )}
+                          {run.concluidoEm && (
+                            <span className="ml-4">
+                              Concluído: {formatDate(run.concluidoEm)}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
-                        <div>
-                          <span className="font-medium">Template:</span>
-                          <p>{getTemplateName(run.templateId)}</p>
-                        </div>
-                        <div>
-                          <span className="font-medium">CSV:</span>
-                          <p>{getCSVName(run.csvId)}</p>
-                        </div>
-                        <div>
-                          <span className="font-medium">Coluna Nome:</span>
-                          <p>{run.nameColumn}</p>
-                        </div>
-                        <div>
-                          <span className="font-medium">Progresso:</span>
-                          <p>{run.certificadosGerados} / {run.totalAlunos}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-3 text-xs text-gray-500">
-                        <span>Criado: {formatDate(run.criadoEm)}</span>
-                        {run.iniciadoEm && (
-                          <span className="ml-4">Iniciado: {formatDate(run.iniciadoEm)}</span>
+
+                      <div className="flex gap-2 ml-4">
+                        {run.status === "pending" && (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => handleExecutarRun(run.id)}
+                            disabled={executarRunMutation.isPending}
+                          >
+                            <Play className="w-4 h-4 mr-1" />
+                            {executarRunMutation.isPending
+                              ? "Executando..."
+                              : "Executar"}
+                          </Button>
                         )}
-                        {run.concluidoEm && (
-                          <span className="ml-4">Concluído: {formatDate(run.concluidoEm)}</span>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex gap-2 ml-4">
-                      {run.status === "pending" && (
-                        <Button 
-                          variant="default" 
-                          size="sm" 
-                          onClick={() => handleExecutarRun(run.id)}
-                          disabled={executarRunMutation.isPending}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            handleVerRunDetalhes(run)}
                         >
-                          <Play className="w-4 h-4 mr-1" />
-                          {executarRunMutation.isPending ? "Executando..." : "Executar"}
+                          <Eye className="w-4 h-4 mr-1" />
+                          Ver
                         </Button>
-                      )}
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleVerRunDetalhes(run)}
-                      >
-                        <Eye className="w-4 h-4 mr-1" />
-                        Ver
-                      </Button>
-                      {run.status === "completed" && (
-                        <Button variant="outline" size="sm">
-                          <Download className="w-4 h-4 mr-1" />
-                          Baixar
+                        {run.status === "completed" && (
+                          <Button variant="outline" size="sm">
+                            <Download className="w-4 h-4 mr-1" />
+                            Baixar
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            handleDeleteRun(run.id)}
+                          disabled={deletarRun.isPending}
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Deletar
                         </Button>
-                      )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteRun(run.id)}
-                        disabled={deletarRun.isPending}
-                      >
-                        <Trash2 className="w-4 h-4 mr-1" />
-                        Deletar
-                      </Button>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
       </CardContent>
-      
+
       {/* Modal de criação de run */}
       <CreateRunModal
         turmaId={turmaId}
@@ -238,7 +256,8 @@ export function RunsList({ turmaId }: RunsListProps) {
                   Detalhes da Run: {runSelecionada.nome}
                 </h2>
                 <p className="text-gray-600 mt-1">
-                  Status: <Badge className={getStatusColor(runSelecionada.status)}>
+                  Status:{" "}
+                  <Badge className={getStatusColor(runSelecionada.status)}>
                     {getStatusText(runSelecionada.status)}
                   </Badge>
                 </p>
@@ -254,25 +273,52 @@ export function RunsList({ turmaId }: RunsListProps) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
-                <h3 className="font-semibold text-lg mb-3">Informações da Run</h3>
+                <h3 className="font-semibold text-lg mb-3">
+                  Informações da Run
+                </h3>
                 <div className="space-y-2 text-sm">
-                  <div><span className="font-medium">Template:</span> {getTemplateName(runSelecionada.templateId)}</div>
-                  <div><span className="font-medium">CSV:</span> {getCSVName(runSelecionada.csvId)}</div>
-                  <div><span className="font-medium">Coluna Nome:</span> {runSelecionada.nameColumn}</div>
-                  <div><span className="font-medium">Total de Alunos:</span> {runSelecionada.totalAlunos}</div>
-                  <div><span className="font-medium">Certificados Gerados:</span> {runSelecionada.certificadosGerados}</div>
+                  <div>
+                    <span className="font-medium">Template:</span>{" "}
+                    {getTemplateName(runSelecionada.templateId)}
+                  </div>
+                  <div>
+                    <span className="font-medium">CSV:</span>{" "}
+                    {getCSVName(runSelecionada.csvId)}
+                  </div>
+                  <div>
+                    <span className="font-medium">Coluna Nome:</span>{" "}
+                    {runSelecionada.nameColumn}
+                  </div>
+                  <div>
+                    <span className="font-medium">Total de Alunos:</span>{" "}
+                    {runSelecionada.totalAlunos}
+                  </div>
+                  <div>
+                    <span className="font-medium">Certificados Gerados:</span>
+                    {" "}
+                    {runSelecionada.certificadosGerados}
+                  </div>
                 </div>
               </div>
 
               <div>
                 <h3 className="font-semibold text-lg mb-3">Timestamps</h3>
                 <div className="space-y-2 text-sm">
-                  <div><span className="font-medium">Criado:</span> {formatDate(runSelecionada.criadoEm)}</div>
+                  <div>
+                    <span className="font-medium">Criado:</span>{" "}
+                    {formatDate(runSelecionada.criadoEm)}
+                  </div>
                   {runSelecionada.iniciadoEm && (
-                    <div><span className="font-medium">Iniciado:</span> {formatDate(runSelecionada.iniciadoEm)}</div>
+                    <div>
+                      <span className="font-medium">Iniciado:</span>{" "}
+                      {formatDate(runSelecionada.iniciadoEm)}
+                    </div>
                   )}
                   {runSelecionada.concluidoEm && (
-                    <div><span className="font-medium">Concluído:</span> {formatDate(runSelecionada.concluidoEm)}</div>
+                    <div>
+                      <span className="font-medium">Concluído:</span>{" "}
+                      {formatDate(runSelecionada.concluidoEm)}
+                    </div>
                   )}
                 </div>
               </div>
@@ -280,18 +326,23 @@ export function RunsList({ turmaId }: RunsListProps) {
 
             {runSelecionada.status === "completed" && (
               <div>
-                <h3 className="font-semibold text-lg mb-3">Certificados Gerados</h3>
+                <h3 className="font-semibold text-lg mb-3">
+                  Certificados Gerados
+                </h3>
                 <div className="bg-gray-50 rounded-lg p-4">
                   <p className="text-gray-600 mb-3">
-                    Esta run gerou {runSelecionada.certificadosGerados} certificados com sucesso.
+                    Esta run gerou {runSelecionada.certificadosGerados}{" "}
+                    certificados com sucesso.
                   </p>
                   <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => {
                         // Switch to certificados tab
-                        const certificadosTab = document.querySelector('[data-value="certificados"]') as HTMLElement;
+                        const certificadosTab = document.querySelector(
+                          '[data-value="certificados"]',
+                        ) as HTMLElement;
                         if (certificadosTab) {
                           certificadosTab.click();
                           setShowRunDetalhes(false);
@@ -312,9 +363,12 @@ export function RunsList({ turmaId }: RunsListProps) {
 
             {runSelecionada.status === "error" && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <h3 className="font-semibold text-lg text-red-800 mb-2">Erro na Execução</h3>
+                <h3 className="font-semibold text-lg text-red-800 mb-2">
+                  Erro na Execução
+                </h3>
                 <p className="text-red-600">
-                  Esta run encontrou um erro durante a execução. Verifique os logs para mais detalhes.
+                  Esta run encontrou um erro durante a execução. Verifique os
+                  logs para mais detalhes.
                 </p>
               </div>
             )}

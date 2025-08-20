@@ -1,12 +1,28 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
 import { Badge } from "./ui/badge";
-import { useListarCertificados, useDeletarCertificado } from "../hooks/useCertificados";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import {
+  useDeletarCertificado,
+  useListarCertificados,
+} from "../hooks/useCertificados";
 import { useListarTemplates } from "../hooks/useTemplates";
 import { useListarCSVs } from "../hooks/useCSVs";
 import { useListarRuns } from "../hooks/useRuns";
-import { Download, Eye, Trash2, ExternalLink, FileText } from "lucide-react";
+import { Download, ExternalLink, FileText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface CertificadosListProps {
@@ -14,7 +30,15 @@ interface CertificadosListProps {
 }
 
 export function CertificadosList({ turmaId }: CertificadosListProps) {
-  const { data: certificadosData, isLoading: isLoadingCertificados } = useListarCertificados(turmaId);
+  const [selectedRunId, setSelectedRunId] = useState<string>("all");
+
+  // Convert selectedRunId to number or null for the hook
+  const runIdForQuery = selectedRunId === "all"
+    ? null
+    : (selectedRunId === "none" ? 0 : parseInt(selectedRunId));
+
+  const { data: certificadosData, isLoading: isLoadingCertificados } =
+    useListarCertificados(turmaId, runIdForQuery);
   const { data: templatesData } = useListarTemplates(turmaId);
   const { data: csvsData } = useListarCSVs(turmaId);
   const { data: runsData } = useListarRuns(turmaId);
@@ -29,20 +53,6 @@ export function CertificadosList({ turmaId }: CertificadosListProps) {
         console.error("Erro ao deletar certificado:", error);
         toast.error("Erro ao deletar certificado");
       }
-    }
-  };
-
-  const handleDownloadRunPDFs = async (runId: number, certificados: any[]) => {
-    try {
-      toast.info(`Funcionalidade de download em lote temporariamente desabilitada. Use o botão "Ver" para baixar certificados individuais.`);
-      
-      // TODO: Implementar download em lote usando client-side generation
-      // Isso requer carregar cada certificado HTML e usar html2pdf para cada um
-      // Por enquanto, usuário deve usar downloads individuais
-      
-    } catch (error) {
-      console.error("Erro ao fazer download em lote:", error);
-      toast.error("Erro ao fazer download em lote");
     }
   };
 
@@ -88,16 +98,19 @@ export function CertificadosList({ turmaId }: CertificadosListProps) {
   };
 
   const getTemplateName = (templateId: number) => {
-    return templatesData?.templates?.find((t: any) => t.id === templateId)?.nome || "Template não encontrado";
+    return templatesData?.templates?.find((t: any) => t.id === templateId)
+      ?.nome || "Template não encontrado";
   };
 
   const getCSVName = (csvId: number) => {
-    return csvsData?.csvs?.find((c: any) => c.id === csvId)?.nome || "CSV não encontrado";
+    return csvsData?.csvs?.find((c: any) => c.id === csvId)?.nome ||
+      "CSV não encontrado";
   };
 
   const getRunName = (runId: number | null) => {
     if (!runId) return "Sem run";
-    return runsData?.runs?.find((r: any) => r.id === runId)?.nome || "Run não encontrado";
+    return runsData?.runs?.find((r: any) => r.id === runId)?.nome ||
+      "Run não encontrado";
   };
 
   const getStudentName = (dados: string, linhaIndex: number) => {
@@ -127,198 +140,192 @@ export function CertificadosList({ turmaId }: CertificadosListProps) {
   return (
     <Card>
       <CardHeader>
-        <div className="flex justify-between items-center">
-          <div>
+        <div className="flex justify-between items-start gap-4">
+          <div className="flex-1">
             <CardTitle>Certificados Gerados</CardTitle>
             <CardDescription>
               Visualize e gerencie os certificados organizados por runs
             </CardDescription>
           </div>
+
+          {/* Select de Runs */}
+          <div className="flex flex-col gap-2 min-w-[200px]">
+            <label className="text-sm font-medium text-gray-700">
+              Filtrar por Run:
+            </label>
+            <Select value={selectedRunId} onValueChange={setSelectedRunId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione uma run" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as Runs</SelectItem>
+                <SelectItem value="none">Sem Run</SelectItem>
+                {runsData?.runs?.map((run: any) => (
+                  <SelectItem key={run.id} value={run.id.toString()}>
+                    {run.nome} ({getStatusText(run.status)})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
-        {!certificadosData?.certificados || certificadosData.certificados.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Nenhum certificado gerado ainda
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Primeiro, crie um run na aba "Runs" para gerar certificados
-            </p>
-            <Button 
-              variant="outline"
-              onClick={() => {
-                // Switch to runs tab
-                const runsTab = document.querySelector('[data-value="runs"]') as HTMLElement;
-                if (runsTab) runsTab.click();
-              }}
-            >
-              <FileText className="h-4 h-4 mr-2" />
-              Ir para Runs
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Agrupar certificados por run */}
-            {(() => {
-              // Agrupar certificados por runId
-              const certificadosPorRun = certificadosData.certificados.reduce((acc: any, certificado: any) => {
-                const runId = certificado.runId || 'sem-run';
-                if (!acc[runId]) {
-                  acc[runId] = [];
-                }
-                acc[runId].push(certificado);
-                return acc;
-              }, {});
+        {!certificadosData?.certificados ||
+            certificadosData.certificados.length === 0
+          ? (
+            <div className="text-center py-12 text-gray-500">
+              <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Nenhum certificado gerado ainda
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Primeiro, crie um run na aba "Runs" para gerar certificados
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  // Switch to runs tab
+                  const runsTab = document.querySelector(
+                    '[data-value="runs"]',
+                  ) as HTMLElement;
+                  if (runsTab) runsTab.click();
+                }}
+              >
+                <FileText className="h-4 h-4 mr-2" />
+                Ir para Runs
+              </Button>
+            </div>
+          )
+          : (
+            <div className="space-y-4">
+              {/* Header informativo da seleção atual */}
+              {selectedRunId !== "all" && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm text-blue-800">
+                    {selectedRunId === "none"
+                      ? "Mostrando certificados sem run associado"
+                      : `Mostrando certificados da run: ${
+                        runsData?.runs?.find((r: any) =>
+                          r.id === parseInt(selectedRunId)
+                        )?.nome || "Run não encontrada"
+                      }`}
+                  </p>
+                </div>
+              )}
 
-              // Ordenar runs por data de criação (mais recente primeiro)
-              const runsOrdenadas = Object.keys(certificadosPorRun).sort((a, b) => {
-                if (a === 'sem-run') return 1;
-                if (b === 'sem-run') return -1;
-                
-                const runA = runsData?.runs?.find((r: any) => r.id === parseInt(a));
-                const runB = runsData?.runs?.find((r: any) => r.id === parseInt(b));
-                
-                if (!runA || !runB) return 0;
-                return new Date(runB.criadoEm).getTime() - new Date(runA.criadoEm).getTime();
-              });
-
-              return runsOrdenadas.map((runId) => {
-                const certificados = certificadosPorRun[runId];
-                const run = runId !== 'sem-run' ? runsData?.runs?.find((r: any) => r.id === parseInt(runId)) : null;
-                
-                return (
-                  <div key={runId} className="border rounded-lg p-4 bg-gray-50">
-                    {/* Header da Run */}
-                    <div className="flex justify-between items-center mb-4">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {run ? `Run: ${run.nome}` : 'Certificados sem Run'}
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          {run ? (
-                            <>
-                              Template: {getTemplateName(run.templateId)} | 
-                              CSV: {getCSVName(run.csvId)} | 
-                              Status: <Badge className={getStatusColor(run.status)}>{getStatusText(run.status)}</Badge>
-                            </>
-                          ) : 'Certificados criados manualmente'}
-                        </p>
-                        {run && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            Criado: {formatDate(run.criadoEm)} | 
-                            {run.iniciadoEm && ` Iniciado: ${formatDate(run.iniciadoEm)}`}
-                            {run.concluidoEm && ` Concluído: ${formatDate(run.concluidoEm)}`}
-                          </p>
-                        )}
-                      </div>
-                      
-                      {run && run.status === "completed" && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleDownloadRunPDFs(run.id, certificados)}
-                        >
-                          <Download className="w-4 h-4 mr-2" />
-                          Baixar Todos ({certificados.length})
-                        </Button>
-                      )}
-                    </div>
-
-                    {/* Lista de Certificados da Run */}
-                    <div className="space-y-3">
-                      {certificados.map((certificado: any) => (
-                        <Card key={certificado.id} className="border-l-4 border-l-green-500">
-                          <CardContent className="p-3">
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <h4 className="font-semibold">
-                                    {certificado.nome || getStudentName(certificado.dados, certificado.linhaIndex)}
-                                  </h4>
-                                  <Badge className={getStatusColor(certificado.status)}>
-                                    {getStatusText(certificado.status)}
-                                  </Badge>
-                                  {certificado.emailEnviado && (
-                                    <Badge className="bg-green-100 text-green-800">
-                                      Email Enviado
-                                    </Badge>
-                                  )}
-                                </div>
-                                
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm text-gray-600">
-                                  <div>
-                                    <span className="font-medium">Template:</span>
-                                    <p>{getTemplateName(certificado.templateId)}</p>
-                                  </div>
-                                  <div>
-                                    <span className="font-medium">CSV:</span>
-                                    <p>{getCSVName(certificado.csvId)}</p>
-                                  </div>
-                                  <div>
-                                    <span className="font-medium">Linha:</span>
-                                    <p>{certificado.linhaIndex + 1}</p>
-                                  </div>
-                                </div>
-                                
-                                <div className="mt-2 text-xs text-gray-500">
-                                  <span>Criado: {formatDate(certificado.criadoEm)}</span>
-                                  {certificado.verificadoEm && (
-                                    <span className="ml-4">Verificado: {formatDate(certificado.verificadoEm)}</span>
-                                  )}
-                                </div>
-                              </div>
-                              
-                              <div className="flex gap-2 ml-4">
-                                <Button variant="outline" size="sm" asChild>
-                                  <a href={`/certificado/${certificado.id}`} target="_blank" rel="noopener noreferrer">
-                                    <ExternalLink className="w-4 h-4 mr-1" />
-                                    Ver
-                                  </a>
-                                </Button>
-                                {certificado.arquivoUrl && (
-                                  <Button variant="outline" size="sm" asChild>
-                                    <a href={certificado.arquivoUrl} download>
-                                      <Download className="w-4 h-4 mr-1" />
-                                      Baixar
-                                    </a>
-                                  </Button>
+              {/* Lista de Certificados */}
+              <div className="space-y-3">
+                {certificadosData.certificados.map((certificado: any) => (
+                  <Card
+                    key={certificado.id}
+                    className="border-l-4 border-l-green-500"
+                  >
+                    <CardContent className="p-3">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h4 className="font-semibold">
+                              {certificado.nome ||
+                                getStudentName(
+                                  certificado.dados,
+                                  certificado.linhaIndex,
                                 )}
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleDeleteCertificado(certificado.id)}
-                                  disabled={deletarCertificado.isPending}
-                                >
-                                  <Trash2 className="w-4 h-4 mr-1" />
-                                  Deletar
-                                </Button>
-                              </div>
+                            </h4>
+                            <Badge
+                              className={getStatusColor(certificado.status)}
+                            >
+                              {getStatusText(certificado.status)}
+                            </Badge>
+                            {certificado.emailEnviado && (
+                              <Badge className="bg-green-100 text-green-800">
+                                Email Enviado
+                              </Badge>
+                            )}
+                          </div>
+
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm text-gray-600">
+                            <div>
+                              <span className="font-medium">Template:</span>
+                              <p>{getTemplateName(certificado.templateId)}</p>
                             </div>
-                            
-                            {/* URL de Verificação */}
-                            <div className="mt-2">
-                              <span className="font-medium">URL de Verificação:</span>
-                              <a 
-                                href={`/certificado/${certificado.id}`} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="ml-2 text-blue-600 hover:text-blue-800 underline break-all"
-                              >
-                                {`${window.location.origin}/certificado/${certificado.id}`}
+                            <div>
+                              <span className="font-medium">CSV:</span>
+                              <p>{getCSVName(certificado.csvId)}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium">Run:</span>
+                              <p>{getRunName(certificado.runId)}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium">Linha:</span>
+                              <p>{certificado.linhaIndex + 1}</p>
+                            </div>
+                          </div>
+
+                          <div className="mt-2 text-xs text-gray-500">
+                            <span>
+                              Criado: {formatDate(certificado.criadoEm)}
+                            </span>
+                            {certificado.verificadoEm && (
+                              <span className="ml-4">
+                                Verificado:{" "}
+                                {formatDate(certificado.verificadoEm)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 ml-4">
+                          <Button variant="outline" size="sm" asChild>
+                            <a
+                              href={`/certificado/${certificado.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <ExternalLink className="w-4 h-4 mr-1" />
+                              Ver
+                            </a>
+                          </Button>
+                          {certificado.arquivoUrl && (
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={certificado.arquivoUrl} download>
+                                <Download className="w-4 h-4 mr-1" />
+                                Baixar
                               </a>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
-        )}
+                            </Button>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              handleDeleteCertificado(certificado.id)}
+                            disabled={deletarCertificado.isPending}
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Deletar
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* URL de Verificação */}
+                      <div className="mt-2">
+                        <span className="font-medium">URL de Verificação:</span>
+                        <a
+                          href={`/certificado/${certificado.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-2 text-blue-600 hover:text-blue-800 underline break-all"
+                        >
+                          {`${window.location.origin}/certificado/${certificado.id}`}
+                        </a>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
       </CardContent>
     </Card>
   );

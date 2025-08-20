@@ -6,6 +6,7 @@
  */
 import { DefaultEnv, withRuntime } from "@deco/workers-runtime";
 import { type Env as DecoEnv, StateSchema } from "./deco.gen.ts";
+import { z } from "zod";
 
 import { workflows } from "./workflows/index.ts";
 import { tools } from "./tools/index.ts";
@@ -22,43 +23,28 @@ export type Env = DefaultEnv & DecoEnv & {
   ASSETS: {
     fetch: (request: Request) => Promise<Response>;
   };
+  /**
+   * API key for API2PDF for local development
+   */
+  LOCAL_API2PDF_API_KEY?: string;
 };
 
-const fallbackToView = (viewPath: string = "/") => async (req: Request, env: Env) => {
-  const LOCAL_URL = "http://localhost:4000";
-  const url = new URL(req.url);
-  const useDevServer = (req.headers.get("origin") || req.headers.get("host"))
-    ?.includes("localhost");
+const fallbackToView =
+  (viewPath: string = "/") => async (req: Request, env: Env) => {
+    const LOCAL_URL = "http://localhost:4000";
+    const url = new URL(req.url);
+    const useDevServer = (req.headers.get("origin") || req.headers.get("host"))
+      ?.includes("localhost");
 
-  // Handle API routes for certificados
-  if (url.pathname.startsWith('/api/certificados/')) {
-    try {
-      // Dynamic import for the API route
-      const apiRoute = url.pathname.replace('/api/certificados/', '');
-      const [id, action] = apiRoute.split('/');
-      
-      if (action === 'pdf') {
-        const { GET } = await import('./api/certificados/[id]/pdf/route.ts');
-        return GET(req, { params: { id } });
-      }
-    } catch (error) {
-      console.error('Error handling API route:', error);
-      return new Response(JSON.stringify({ error: 'API route not found' }), { 
-        status: 404,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-  }
+    const request = new Request(
+      useDevServer
+        ? new URL(`${url.pathname}${url.search}`, LOCAL_URL)
+        : new URL(viewPath, req.url),
+      req,
+    );
 
-  const request = new Request(
-    useDevServer
-      ? new URL(`${url.pathname}${url.search}`, LOCAL_URL)
-      : new URL(viewPath, req.url),
-    req,
-  );
-
-  return useDevServer ? fetch(request) : env.ASSETS.fetch(request);
-};
+    return useDevServer ? fetch(request) : env.ASSETS.fetch(request);
+  };
 
 const runtime = withRuntime<Env, typeof StateSchema>({
   oauth: {
@@ -87,7 +73,9 @@ const runtime = withRuntime<Env, typeof StateSchema>({
      * fields to the state schema, like asking for an API Key
      * for connecting to a third-party service.
      */
-    state: StateSchema,
+    state: StateSchema.extend({
+      api2pdfApiKey: z.string(),
+    }),
   },
   views,
   workflows,

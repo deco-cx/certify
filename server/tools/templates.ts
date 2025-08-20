@@ -1,6 +1,6 @@
 /**
  * Templates-related tools for managing HTML templates for certificates.
- * 
+ *
  * This file contains all tools related to template operations including:
  * - Creating new templates
  * - Listing templates by turma
@@ -8,15 +8,15 @@
  * - Deleting templates
  * - Getting template details
  */
-import { createTool } from "@deco/workers-runtime/mastra";
+import { createPrivateTool } from "@deco/workers-runtime/mastra";
 import { z } from "zod";
 import type { Env } from "../main.ts";
 import { getDb } from "../db.ts";
 import { templatesTable, turmasTable } from "../schema.ts";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 export const createListarTemplatesTool = (env: Env) =>
-  createTool({
+  createPrivateTool({
     id: "LISTAR_TEMPLATES",
     description: "List all templates for a specific turma",
     inputSchema: z.object({
@@ -27,8 +27,7 @@ export const createListarTemplatesTool = (env: Env) =>
         id: z.number(),
         turmaId: z.number(),
         nome: z.string(),
-        arquivoUrl: z.string(),
-        arquivoId: z.string().nullable(),
+        html: z.string(),
         tipo: z.string().nullable(),
         campos: z.string().nullable(),
         criadoEm: z.string(),
@@ -37,24 +36,25 @@ export const createListarTemplatesTool = (env: Env) =>
     }),
     execute: async ({ context }) => {
       const db = await getDb(env);
-      
+
       try {
         const templates = await db.select()
           .from(templatesTable)
           .where(eq(templatesTable.turmaId, context.turmaId))
           .orderBy(templatesTable.criadoEm);
-        
+
         return {
-          templates: templates.map(template => ({
+          templates: templates.map((template) => ({
             id: template.id,
             turmaId: template.turmaId,
             nome: template.nome,
-            arquivoUrl: template.arquivoUrl,
-            arquivoId: template.arquivoId,
+            html: template.html,
             tipo: template.tipo,
             campos: template.campos,
-            criadoEm: template.criadoEm?.toISOString() || new Date().toISOString(),
-            atualizadoEm: template.atualizadoEm?.toISOString() || new Date().toISOString(),
+            criadoEm: template.criadoEm?.toISOString() ||
+              new Date().toISOString(),
+            atualizadoEm: template.atualizadoEm?.toISOString() ||
+              new Date().toISOString(),
           })),
         };
       } catch (error) {
@@ -65,7 +65,7 @@ export const createListarTemplatesTool = (env: Env) =>
   });
 
 export const createBuscarTemplatePorIdTool = (env: Env) =>
-  createTool({
+  createPrivateTool({
     id: "BUSCAR_TEMPLATE_POR_ID",
     description: "Get a specific template by its ID",
     inputSchema: z.object({
@@ -76,8 +76,7 @@ export const createBuscarTemplatePorIdTool = (env: Env) =>
         id: z.number(),
         turmaId: z.number(),
         nome: z.string(),
-        arquivoUrl: z.string(),
-        arquivoId: z.string().nullable(),
+        html: z.string(),
         tipo: z.string().nullable(),
         campos: z.string().nullable(),
         criadoEm: z.string(),
@@ -86,29 +85,30 @@ export const createBuscarTemplatePorIdTool = (env: Env) =>
     }),
     execute: async ({ context }) => {
       const db = await getDb(env);
-      
+
       try {
         const templates = await db.select()
           .from(templatesTable)
           .where(eq(templatesTable.id, context.id))
           .limit(1);
-        
+
         if (templates.length === 0) {
           return { template: null };
         }
-        
+
         const template = templates[0];
         return {
           template: {
             id: template.id,
             turmaId: template.turmaId,
             nome: template.nome,
-            arquivoUrl: template.arquivoUrl,
-            arquivoId: template.arquivoId,
+            html: template.html,
             tipo: template.tipo,
             campos: template.campos,
-            criadoEm: template.criadoEm?.toISOString() || new Date().toISOString(),
-            atualizadoEm: template.atualizadoEm?.toISOString() || new Date().toISOString(),
+            criadoEm: template.criadoEm?.toISOString() ||
+              new Date().toISOString(),
+            atualizadoEm: template.atualizadoEm?.toISOString() ||
+              new Date().toISOString(),
           },
         };
       } catch (error) {
@@ -119,14 +119,13 @@ export const createBuscarTemplatePorIdTool = (env: Env) =>
   });
 
 export const createCriarTemplateTool = (env: Env) =>
-  createTool({
+  createPrivateTool({
     id: "CRIAR_TEMPLATE",
     description: "Create a new HTML template for certificates",
     inputSchema: z.object({
       turmaId: z.number(),
       nome: z.string(),
-      arquivoUrl: z.string(),
-      arquivoId: z.string().optional(),
+      html: z.string(),
       tipo: z.string().optional(),
       campos: z.string().optional(),
     }),
@@ -134,8 +133,7 @@ export const createCriarTemplateTool = (env: Env) =>
       id: z.number(),
       turmaId: z.number(),
       nome: z.string(),
-      arquivoUrl: z.string(),
-      arquivoId: z.string().nullable(),
+      html: z.string(),
       tipo: z.string().nullable(),
       campos: z.string().nullable(),
       criadoEm: z.string(),
@@ -143,14 +141,14 @@ export const createCriarTemplateTool = (env: Env) =>
     }),
     execute: async ({ context }) => {
       const db = await getDb(env);
-      
+
       try {
         // Verify turma exists
         const turmas = await db.select()
           .from(turmasTable)
           .where(eq(turmasTable.id, context.turmaId))
           .limit(1);
-        
+
         if (turmas.length === 0) {
           throw new Error("Turma not found");
         }
@@ -159,35 +157,33 @@ export const createCriarTemplateTool = (env: Env) =>
         const newTemplate = await db.insert(templatesTable).values({
           turmaId: context.turmaId,
           nome: context.nome,
-          arquivoUrl: context.arquivoUrl,
-          arquivoId: context.arquivoId || null,
+          html: context.html,
           tipo: (context.tipo as "html") || "html",
           campos: context.campos || null,
           criadoEm: agora,
           atualizadoEm: agora,
-        }).returning({ 
+        }).returning({
           id: templatesTable.id,
           turmaId: templatesTable.turmaId,
           nome: templatesTable.nome,
-          arquivoUrl: templatesTable.arquivoUrl,
-          arquivoId: templatesTable.arquivoId,
+          html: templatesTable.html,
           tipo: templatesTable.tipo,
           campos: templatesTable.campos,
           criadoEm: templatesTable.criadoEm,
           atualizadoEm: templatesTable.atualizadoEm,
         });
-        
+
         const template = newTemplate[0];
         return {
           id: template.id,
           turmaId: template.turmaId,
           nome: template.nome,
-          arquivoUrl: template.arquivoUrl,
-          arquivoId: template.arquivoId,
+          html: template.html,
           tipo: template.tipo,
           campos: template.campos,
           criadoEm: template.criadoEm?.toISOString() || agora.toISOString(),
-          atualizadoEm: template.atualizadoEm?.toISOString() || agora.toISOString(),
+          atualizadoEm: template.atualizadoEm?.toISOString() ||
+            agora.toISOString(),
         };
       } catch (error) {
         console.error("Error creating template:", error);
@@ -197,14 +193,13 @@ export const createCriarTemplateTool = (env: Env) =>
   });
 
 export const createAtualizarTemplateTool = (env: Env) =>
-  createTool({
+  createPrivateTool({
     id: "ATUALIZAR_TEMPLATE",
     description: "Update an existing template's information",
     inputSchema: z.object({
       id: z.number(),
       nome: z.string().optional(),
-      arquivoUrl: z.string().optional(),
-      arquivoId: z.string().optional(),
+      html: z.string().optional(),
       tipo: z.string().optional(),
       campos: z.string().optional(),
     }),
@@ -214,8 +209,7 @@ export const createAtualizarTemplateTool = (env: Env) =>
         id: z.number(),
         turmaId: z.number(),
         nome: z.string(),
-        arquivoUrl: z.string(),
-        arquivoId: z.string().nullable(),
+        html: z.string(),
         tipo: z.string().nullable(),
         campos: z.string().nullable(),
         criadoEm: z.string(),
@@ -224,31 +218,30 @@ export const createAtualizarTemplateTool = (env: Env) =>
     }),
     execute: async ({ context }) => {
       const db = await getDb(env);
-      
+
       try {
         // Check if template exists
         const existing = await db.select()
           .from(templatesTable)
           .where(eq(templatesTable.id, context.id))
           .limit(1);
-        
+
         if (existing.length === 0) {
           throw new Error("Template not found");
         }
-        
+
         const updates: any = {};
         if (context.nome !== undefined) updates.nome = context.nome;
-        if (context.arquivoUrl !== undefined) updates.arquivoUrl = context.arquivoUrl;
-        if (context.arquivoId !== undefined) updates.arquivoId = context.arquivoId;
+        if (context.html !== undefined) updates.html = context.html;
         if (context.tipo !== undefined) updates.tipo = context.tipo;
         if (context.campos !== undefined) updates.campos = context.campos;
         updates.atualizadoEm = new Date();
-        
+
         const updated = await db.update(templatesTable)
           .set(updates)
           .where(eq(templatesTable.id, context.id))
           .returning();
-        
+
         const template = updated[0];
         return {
           success: true,
@@ -256,12 +249,13 @@ export const createAtualizarTemplateTool = (env: Env) =>
             id: template.id,
             turmaId: template.turmaId,
             nome: template.nome,
-            arquivoUrl: template.arquivoUrl,
-            arquivoId: template.arquivoId,
+            html: template.html,
             tipo: template.tipo,
             campos: template.campos,
-            criadoEm: template.criadoEm?.toISOString() || new Date().toISOString(),
-            atualizadoEm: template.atualizadoEm?.toISOString() || new Date().toISOString(),
+            criadoEm: template.criadoEm?.toISOString() ||
+              new Date().toISOString(),
+            atualizadoEm: template.atualizadoEm?.toISOString() ||
+              new Date().toISOString(),
           },
         };
       } catch (error) {
@@ -272,7 +266,7 @@ export const createAtualizarTemplateTool = (env: Env) =>
   });
 
 export const createDeletarTemplateTool = (env: Env) =>
-  createTool({
+  createPrivateTool({
     id: "DELETAR_TEMPLATE",
     description: "Delete a template and all its associated data",
     inputSchema: z.object({
@@ -284,20 +278,22 @@ export const createDeletarTemplateTool = (env: Env) =>
     }),
     execute: async ({ context }) => {
       const db = await getDb(env);
-      
+
       try {
         // Check if template exists
         const existing = await db.select()
           .from(templatesTable)
           .where(eq(templatesTable.id, context.id))
           .limit(1);
-        
+
         if (existing.length === 0) {
           throw new Error("Template not found");
         }
-        
-        await db.delete(templatesTable).where(eq(templatesTable.id, context.id));
-        
+
+        await db.delete(templatesTable).where(
+          eq(templatesTable.id, context.id),
+        );
+
         return {
           success: true,
           deletedId: context.id,

@@ -2,7 +2,20 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useCriarRun } from "../hooks/useRuns";
 import { useListarTemplates } from "../hooks/useTemplates";
 import { useListarCSVs } from "../hooks/useCSVs";
@@ -14,11 +27,14 @@ interface CreateRunModalProps {
   onClose: () => void;
 }
 
-export function CreateRunModal({ turmaId, isOpen, onClose }: CreateRunModalProps) {
+export function CreateRunModal(
+  { turmaId, isOpen, onClose }: CreateRunModalProps,
+) {
   const [nome, setNome] = useState("");
   const [templateId, setTemplateId] = useState<number | null>(null);
   const [csvId, setCsvId] = useState<number | null>(null);
   const [nameColumn, setNameColumn] = useState<string | undefined>(undefined);
+  const [emailColumn, setEmailColumn] = useState<string | undefined>(undefined);
 
   const { data: templatesData } = useListarTemplates(turmaId);
   const { data: csvsData } = useListarCSVs(turmaId);
@@ -32,13 +48,14 @@ export function CreateRunModal({ turmaId, isOpen, onClose }: CreateRunModalProps
     csvsData,
     templateId,
     csvId,
-    nameColumn
+    nameColumn,
+    emailColumn,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!nome || !templateId || !csvId || !nameColumn) {
+
+    if (!nome || !templateId || !csvId || !nameColumn || !emailColumn) {
       alert("Por favor, preencha todos os campos obrigatórios");
       return;
     }
@@ -50,14 +67,15 @@ export function CreateRunModal({ turmaId, isOpen, onClose }: CreateRunModalProps
         templateId,
         csvId,
         nameColumn,
+        emailColumn,
       });
-      
+
       // Reset form
       setNome("");
       setTemplateId(null);
       setCsvId(null);
       setNameColumn(undefined);
-      
+      setEmailColumn(undefined);
       // Close modal
       onClose();
     } catch (error) {
@@ -72,6 +90,7 @@ export function CreateRunModal({ turmaId, isOpen, onClose }: CreateRunModalProps
     setTemplateId(null);
     setCsvId(null);
     setNameColumn(undefined);
+    setEmailColumn(undefined);
     onClose();
   };
 
@@ -96,7 +115,7 @@ export function CreateRunModal({ turmaId, isOpen, onClose }: CreateRunModalProps
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="nome">Nome do Run *</Label>
+              <Label htmlFor="nome" className="mb-1">Nome do Run *</Label>
               <Input
                 id="nome"
                 value={nome}
@@ -107,92 +126,208 @@ export function CreateRunModal({ turmaId, isOpen, onClose }: CreateRunModalProps
             </div>
 
             <div>
-              <Label htmlFor="template">Template HTML *</Label>
-              <select
-                id="template"
+              <Label htmlFor="template" className="mb-1">Template HTML *</Label>
+              <Select
                 value={templateId?.toString() || ""}
-                onChange={(e) => setTemplateId(e.target.value ? parseInt(e.target.value) : null)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
+                onValueChange={(value) => {
+                  if (value === "no-templates") return;
+                  setTemplateId(value ? parseInt(value) : null);
+                }}
               >
-                <option value="">Selecione um template</option>
-                {templatesData?.templates && templatesData.templates.length > 0 ? (
-                  templatesData.templates.map((template: any) => (
-                    <option key={template.id} value={template.id.toString()}>
-                      {template.nome}
-                    </option>
-                  ))
-                ) : (
-                  <option value="" disabled>Nenhum template disponível</option>
-                )}
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um template" />
+                </SelectTrigger>
+                <SelectContent>
+                  {templatesData?.templates &&
+                      templatesData.templates.length > 0
+                    ? (
+                      templatesData.templates.map((template: any) => (
+                        <SelectItem
+                          key={template.id}
+                          value={template.id.toString()}
+                        >
+                          {template.nome}
+                        </SelectItem>
+                      ))
+                    )
+                    : (
+                      <SelectItem value="no-templates" disabled>
+                        Nenhum template disponível
+                      </SelectItem>
+                    )}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
-              <Label htmlFor="csv">Arquivo CSV *</Label>
-              <select
-                id="csv"
+              <Label htmlFor="csv" className="mb-1">Arquivo CSV *</Label>
+              <Select
                 value={csvId?.toString() || ""}
-                onChange={(e) => setCsvId(e.target.value ? parseInt(e.target.value) : null)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
+                onValueChange={(value) => {
+                  if (value === "no-csvs") return;
+                  setCsvId(value ? parseInt(value) : null);
+                }}
               >
-                <option value="">Selecione um arquivo CSV</option>
-                {csvsData?.csvs && csvsData.csvs.length > 0 ? (
-                  csvsData.csvs.map((csv: any) => (
-                    <option key={csv.id} value={csv.id.toString()}>
-                      {csv.nome}
-                    </option>
-                  ))
-                ) : (
-                  <option value="" disabled>Nenhum CSV disponível</option>
-                )}
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um arquivo CSV" />
+                </SelectTrigger>
+                <SelectContent>
+                  {csvsData?.csvs && csvsData.csvs.length > 0
+                    ? (
+                      csvsData.csvs.map((csv: any) => (
+                        <SelectItem key={csv.id} value={csv.id.toString()}>
+                          {csv.nome}
+                        </SelectItem>
+                      ))
+                    )
+                    : (
+                      <SelectItem value="no-csvs" disabled>
+                        Nenhum CSV disponível
+                      </SelectItem>
+                    )}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
-              <Label htmlFor="nameColumn">Coluna do Nome *</Label>
-              <select
-                id="nameColumn"
+              <Label htmlFor="nameColumn" className="mb-1">
+                Coluna do Nome *
+              </Label>
+              <Select
                 value={nameColumn || ""}
-                onChange={(e) => setNameColumn(e.target.value || undefined)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
+                onValueChange={(value) => {
+                  if (
+                    value === "no-columns" || value === "error-columns" ||
+                    value === "select-csv-first"
+                  ) return;
+                  setNameColumn(value || undefined);
+                }}
                 disabled={!csvId}
               >
-                <option value="">Selecione a coluna que contém os nomes</option>
-                                  {csvId && csvsData?.csvs?.find((c: any) => c.id === csvId)?.colunas ? (
-                  (() => {
-                    try {
-                      // As colunas são salvas como string separada por vírgulas, não JSON
-                      const colunas = csvsData.csvs.find((c: any) => c.id === csvId)!.colunas.split(',').map((col: string) => col.trim());
-                      if (colunas.length > 0) {
-                        return colunas.map((coluna: string) => (
-                          <option key={coluna} value={coluna}>
-                            {coluna}
-                          </option>
-                        ));
-                      } else {
-                        return <option value="" disabled>CSV não possui colunas válidas</option>;
-                      }
-                    } catch (error) {
-                      console.error('Erro ao processar colunas do CSV:', error);
-                      return <option value="" disabled>Erro ao processar colunas do CSV</option>;
-                    }
-                  })()
-                ) : (
-                  <option value="" disabled>Selecione um CSV primeiro</option>
-                )}
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a coluna que contém os nomes" />
+                </SelectTrigger>
+                <SelectContent>
+                  {csvId &&
+                      csvsData?.csvs?.find((c: any) => c.id === csvId)?.colunas
+                    ? (
+                      (() => {
+                        try {
+                          // As colunas são salvas como string separada por vírgulas, não JSON
+                          const colunas = csvsData.csvs.find((c: any) =>
+                            c.id === csvId
+                          )!.colunas.split(",").map((col: string) =>
+                            col.trim()
+                          );
+                          if (colunas.length > 0) {
+                            return colunas.map((coluna: string) => (
+                              <SelectItem key={coluna} value={coluna}>
+                                {coluna}
+                              </SelectItem>
+                            ));
+                          } else {
+                            return (
+                              <SelectItem value="no-columns" disabled>
+                                CSV não possui colunas válidas
+                              </SelectItem>
+                            );
+                          }
+                        } catch (error) {
+                          console.error(
+                            "Erro ao processar colunas do CSV:",
+                            error,
+                          );
+                          return (
+                            <SelectItem value="error-columns" disabled>
+                              Erro ao processar colunas do CSV
+                            </SelectItem>
+                          );
+                        }
+                      })()
+                    )
+                    : (
+                      <SelectItem value="select-csv-first" disabled>
+                        Selecione um CSV primeiro
+                      </SelectItem>
+                    )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="emailColumn" className="mb-1">
+                Coluna do Email *
+              </Label>
+              <Select
+                value={emailColumn || ""}
+                onValueChange={(value) => {
+                  if (
+                    value === "no-columns-email" ||
+                    value === "error-columns-email" ||
+                    value === "select-csv-first-email"
+                  ) return;
+                  setEmailColumn(value || undefined);
+                }}
+                disabled={!csvId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a coluna que contém os emails" />
+                </SelectTrigger>
+                <SelectContent>
+                  {csvId &&
+                      csvsData?.csvs?.find((c: any) => c.id === csvId)?.colunas
+                    ? (
+                      (() => {
+                        try {
+                          // As colunas são salvas como string separada por vírgulas, não JSON
+                          const colunas = csvsData.csvs.find((c: any) =>
+                            c.id === csvId
+                          )!.colunas.split(",").map((col: string) =>
+                            col.trim()
+                          );
+                          if (colunas.length > 0) {
+                            return colunas.map((coluna: string) => (
+                              <SelectItem key={coluna} value={coluna}>
+                                {coluna}
+                              </SelectItem>
+                            ));
+                          } else {
+                            return (
+                              <SelectItem value="no-columns-email" disabled>
+                                CSV não possui colunas válidas
+                              </SelectItem>
+                            );
+                          }
+                        } catch (error) {
+                          console.error(
+                            "Erro ao processar colunas do CSV:",
+                            error,
+                          );
+                          return (
+                            <SelectItem value="error-columns-email" disabled>
+                              Erro ao processar colunas do CSV
+                            </SelectItem>
+                          );
+                        }
+                      })()
+                    )
+                    : (
+                      <SelectItem value="select-csv-first-email" disabled>
+                        Selecione um CSV primeiro
+                      </SelectItem>
+                    )}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex justify-end gap-2 pt-4">
               <Button type="button" variant="outline" onClick={handleClose}>
                 Cancelar
               </Button>
-              <Button 
-                type="submit" 
-                disabled={criarRun.isPending || !nome || !templateId || !csvId || !nameColumn}
+              <Button
+                type="submit"
+                disabled={criarRun.isPending || !nome || !templateId ||
+                  !csvId || !nameColumn}
               >
                 {criarRun.isPending ? "Criando..." : "Criar Run"}
               </Button>

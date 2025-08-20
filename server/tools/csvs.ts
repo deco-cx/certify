@@ -1,6 +1,6 @@
 /**
  * CSVs-related tools for managing student data files.
- * 
+ *
  * This file contains all tools related to CSV operations including:
  * - Creating new CSV records
  * - Listing CSVs by turma
@@ -8,7 +8,7 @@
  * - Deleting CSVs
  * - Getting CSV details
  */
-import { createTool } from "@deco/workers-runtime/mastra";
+import { createPrivateTool } from "@deco/workers-runtime/mastra";
 import { z } from "zod";
 import type { Env } from "../main.ts";
 import { getDb } from "../db.ts";
@@ -16,7 +16,7 @@ import { csvsTable, turmasTable } from "../schema.ts";
 import { eq } from "drizzle-orm";
 
 export const createListarCSVsTool = (env: Env) =>
-  createTool({
+  createPrivateTool({
     id: "LISTAR_CSVS",
     description: "List all CSVs for a specific turma",
     inputSchema: z.object({
@@ -36,15 +36,15 @@ export const createListarCSVsTool = (env: Env) =>
     }),
     execute: async ({ context }) => {
       const db = await getDb(env);
-      
+
       try {
         const csvs = await db.select()
           .from(csvsTable)
           .where(eq(csvsTable.turmaId, context.turmaId))
           .orderBy(csvsTable.criadoEm);
-        
+
         return {
-          csvs: csvs.map(csv => ({
+          csvs: csvs.map((csv) => ({
             id: csv.id,
             turmaId: csv.turmaId,
             templateId: csv.templateId,
@@ -63,7 +63,7 @@ export const createListarCSVsTool = (env: Env) =>
   });
 
 export const createBuscarCSVPorIdTool = (env: Env) =>
-  createTool({
+  createPrivateTool({
     id: "BUSCAR_CSV_POR_ID",
     description: "Get a specific CSV by its ID",
     inputSchema: z.object({
@@ -83,17 +83,17 @@ export const createBuscarCSVPorIdTool = (env: Env) =>
     }),
     execute: async ({ context }) => {
       const db = await getDb(env);
-      
+
       try {
         const csvs = await db.select()
           .from(csvsTable)
           .where(eq(csvsTable.id, context.id))
           .limit(1);
-        
+
         if (csvs.length === 0) {
           return { csv: null };
         }
-        
+
         const csv = csvs[0];
         return {
           csv: {
@@ -115,7 +115,7 @@ export const createBuscarCSVPorIdTool = (env: Env) =>
   });
 
 export const createCriarCSVTool = (env: Env) =>
-  createTool({
+  createPrivateTool({
     id: "CRIAR_CSV",
     description: "Create a new CSV record for student data",
     inputSchema: z.object({
@@ -137,14 +137,14 @@ export const createCriarCSVTool = (env: Env) =>
     }),
     execute: async ({ context }) => {
       const db = await getDb(env);
-      
+
       try {
         // Verify turma exists
         const turmas = await db.select()
           .from(turmasTable)
           .where(eq(turmasTable.id, context.turmaId))
           .limit(1);
-        
+
         if (turmas.length === 0) {
           throw new Error("Turma not found");
         }
@@ -158,7 +158,7 @@ export const createCriarCSVTool = (env: Env) =>
           colunas: context.colunas,
           criadoEm: agora,
           processadoEm: null,
-        }).returning({ 
+        }).returning({
           id: csvsTable.id,
           turmaId: csvsTable.turmaId,
           templateId: csvsTable.templateId,
@@ -168,7 +168,7 @@ export const createCriarCSVTool = (env: Env) =>
           criadoEm: csvsTable.criadoEm,
           processadoEm: csvsTable.processadoEm,
         });
-        
+
         const csv = newCSV[0];
         return {
           id: csv.id,
@@ -188,7 +188,7 @@ export const createCriarCSVTool = (env: Env) =>
   });
 
 export const createAtualizarCSVTool = (env: Env) =>
-  createTool({
+  createPrivateTool({
     id: "ATUALIZAR_CSV",
     description: "Update an existing CSV's information",
     inputSchema: z.object({
@@ -214,32 +214,36 @@ export const createAtualizarCSVTool = (env: Env) =>
     }),
     execute: async ({ context }) => {
       const db = await getDb(env);
-      
+
       try {
         // Check if CSV exists
         const existing = await db.select()
           .from(csvsTable)
           .where(eq(csvsTable.id, context.id))
           .limit(1);
-        
+
         if (existing.length === 0) {
           throw new Error("CSV not found");
         }
-        
+
         const updates: any = {};
         if (context.nome !== undefined) updates.nome = context.nome;
         if (context.dados !== undefined) updates.dados = context.dados;
         if (context.colunas !== undefined) updates.colunas = context.colunas;
-        if (context.templateId !== undefined) updates.templateId = context.templateId;
-        if (context.processadoEm !== undefined) {
-          updates.processadoEm = context.processadoEm ? new Date(context.processadoEm) : null;
+        if (context.templateId !== undefined) {
+          updates.templateId = context.templateId;
         }
-        
+        if (context.processadoEm !== undefined) {
+          updates.processadoEm = context.processadoEm
+            ? new Date(context.processadoEm)
+            : null;
+        }
+
         const updated = await db.update(csvsTable)
           .set(updates)
           .where(eq(csvsTable.id, context.id))
           .returning();
-        
+
         const csv = updated[0];
         return {
           success: true,
@@ -262,7 +266,7 @@ export const createAtualizarCSVTool = (env: Env) =>
   });
 
 export const createDeletarCSVTool = (env: Env) =>
-  createTool({
+  createPrivateTool({
     id: "DELETAR_CSV",
     description: "Delete a CSV and all its associated data",
     inputSchema: z.object({
@@ -274,20 +278,20 @@ export const createDeletarCSVTool = (env: Env) =>
     }),
     execute: async ({ context }) => {
       const db = await getDb(env);
-      
+
       try {
         // Check if CSV exists
         const existing = await db.select()
           .from(csvsTable)
           .where(eq(csvsTable.id, context.id))
           .limit(1);
-        
+
         if (existing.length === 0) {
           throw new Error("CSV not found");
         }
-        
+
         await db.delete(csvsTable).where(eq(csvsTable.id, context.id));
-        
+
         return {
           success: true,
           deletedId: context.id,

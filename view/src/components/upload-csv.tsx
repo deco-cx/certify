@@ -2,8 +2,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { X, Upload, FileText, AlertCircle, Users } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { AlertCircle, FileText, Upload, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { client } from "@/lib/rpc";
@@ -22,8 +28,9 @@ export function UploadCSV({ turmaId, onClose }: UploadCSVProps) {
 
   // Criar CSV
   const criarCSVMutation = useMutation({
-    mutationFn: (data: { turmaId: number; nome: string; dados: string; colunas: string }) =>
-      client.CRIAR_CSV(data),
+    mutationFn: (
+      data: { turmaId: number; nome: string; dados: string; colunas: string },
+    ) => client.CRIAR_CSV(data),
     onSuccess: () => {
       toast.success("CSV criado com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["csvs", turmaId] });
@@ -37,7 +44,7 @@ export function UploadCSV({ turmaId, onClose }: UploadCSVProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!nome.trim()) {
       toast.error("Nome do arquivo é obrigatório");
       return;
@@ -54,7 +61,7 @@ export function UploadCSV({ turmaId, onClose }: UploadCSVProps) {
     }
 
     setIsUploading(true);
-    
+
     try {
       await criarCSVMutation.mutateAsync({
         turmaId,
@@ -71,25 +78,31 @@ export function UploadCSV({ turmaId, onClose }: UploadCSVProps) {
   };
 
   const processarCSV = (content: string) => {
-    const linhas = content.trim().split('\n');
+    const linhas = content.trim().split("\n");
     if (linhas.length === 0) return;
 
     const primeiraLinha = linhas[0];
-    const colunasDetectadas = primeiraLinha.split(',').map(col => col.trim().replace(/"/g, ''));
-    
+    const colunasDetectadas = primeiraLinha.split(",").map((col) =>
+      col.trim().replace(/"/g, "")
+    );
+
     setColunas(colunasDetectadas);
-    
+
     // Mostrar preview das primeiras linhas
     // Preview das primeiras linhas para validação (não usado por enquanto)
-    
-    toast.success(`CSV processado! ${colunasDetectadas.length} colunas detectadas: ${colunasDetectadas.join(', ')}`);
+
+    toast.success(
+      `CSV processado! ${colunasDetectadas.length} colunas detectadas: ${
+        colunasDetectadas.join(", ")
+      }`,
+    );
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.type !== "text/csv" && !file.name.endsWith('.csv')) {
+    if (file.type !== "text/csv" && !file.name.endsWith(".csv")) {
       toast.error("Por favor, selecione um arquivo CSV válido");
       return;
     }
@@ -98,12 +111,12 @@ export function UploadCSV({ turmaId, onClose }: UploadCSVProps) {
     reader.onload = (event) => {
       const content = event.target?.result as string;
       setCsvContent(content);
-      
+
       // Auto-preencher nome se estiver vazio
       if (!nome.trim()) {
-        setNome(file.name.replace('.csv', ''));
+        setNome(file.name.replace(".csv", ""));
       }
-      
+
       // Processar CSV automaticamente
       processarCSV(content);
     };
@@ -113,7 +126,7 @@ export function UploadCSV({ turmaId, onClose }: UploadCSVProps) {
   const handleCSVInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const content = e.target.value;
     setCsvContent(content);
-    
+
     if (content.trim()) {
       processarCSV(content);
     } else {
@@ -140,7 +153,7 @@ export function UploadCSV({ turmaId, onClose }: UploadCSVProps) {
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
-        
+
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Upload de arquivo */}
@@ -157,14 +170,15 @@ export function UploadCSV({ turmaId, onClose }: UploadCSVProps) {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => document.getElementById('file')?.click()}
+                  onClick={() => document.getElementById("file")?.click()}
                 >
                   <Upload className="h-4 w-4 mr-2" />
                   Selecionar
                 </Button>
               </div>
               <p className="text-xs text-gray-500">
-                Selecione um arquivo CSV com dados dos alunos (nome, email, curso, etc.)
+                Selecione um arquivo CSV com dados dos alunos (nome, email,
+                curso, etc.)
               </p>
             </div>
 
@@ -183,7 +197,9 @@ export function UploadCSV({ turmaId, onClose }: UploadCSVProps) {
 
             {/* Input direto de CSV */}
             <div className="space-y-2">
-              <Label htmlFor="csvContent">Ou cole o conteúdo CSV diretamente</Label>
+              <Label htmlFor="csvContent">
+                Ou cole o conteúdo CSV diretamente
+              </Label>
               <Input
                 id="csvContent"
                 type="text"
@@ -214,7 +230,9 @@ export function UploadCSV({ turmaId, onClose }: UploadCSVProps) {
                 <div className="flex items-center space-x-2 text-sm text-gray-600">
                   <AlertCircle className="h-4 w-4" />
                   <span>
-                    {colunas.length} coluna{colunas.length !== 1 ? 's' : ''} detectada{colunas.length !== 1 ? 's' : ''}
+                    {colunas.length} coluna{colunas.length !== 1 ? "s" : ""}
+                    {" "}
+                    detectada{colunas.length !== 1 ? "s" : ""}
                   </span>
                 </div>
               </div>
@@ -237,11 +255,15 @@ export function UploadCSV({ turmaId, onClose }: UploadCSVProps) {
               <div className="flex items-start space-x-2">
                 <Users className="h-5 w-5 text-blue-600 mt-0.5" />
                 <div className="text-sm text-blue-800">
-                  <h4 className="font-medium mb-2">Formato Recomendado do CSV:</h4>
+                  <h4 className="font-medium mb-2">
+                    Formato Recomendado do CSV:
+                  </h4>
                   <ul className="space-y-1 text-xs">
                     <li>• Primeira linha deve conter os nomes das colunas</li>
                     <li>• Use vírgulas para separar valores</li>
-                    <li>• Colunas comuns: nome, email, curso, data_conclusao</li>
+                    <li>
+                      • Colunas comuns: nome, email, curso, data_conclusao
+                    </li>
                     <li>• Evite caracteres especiais nos nomes das colunas</li>
                   </ul>
                 </div>
@@ -260,20 +282,24 @@ export function UploadCSV({ turmaId, onClose }: UploadCSVProps) {
               </Button>
               <Button
                 type="submit"
-                disabled={isUploading || !nome.trim() || !csvContent.trim() || colunas.length === 0}
+                disabled={isUploading || !nome.trim() || !csvContent.trim() ||
+                  colunas.length === 0}
                 className="min-w-[120px]"
               >
-                {isUploading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Criando...
-                  </>
-                ) : (
-                  <>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Criar CSV
-                  </>
-                )}
+                {isUploading
+                  ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2">
+                      </div>
+                      Criando...
+                    </>
+                  )
+                  : (
+                    <>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Criar CSV
+                    </>
+                  )}
               </Button>
             </div>
           </form>

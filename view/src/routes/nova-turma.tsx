@@ -1,7 +1,17 @@
-import { createRoute, type RootRoute, useNavigate } from "@tanstack/react-router";
+import {
+  createRoute,
+  type RootRoute,
+  useNavigate,
+} from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,17 +19,18 @@ import { ArrowLeft, Save } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { client } from "@/lib/rpc";
+import LoggedProvider from "@/components/logged-provider";
 
 function NovaTurmaPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
+
   const [nome, setNome] = useState("");
   const [descricao, setDescricao] = useState("");
 
   // Criar turma
   const criarTurmaMutation = useMutation({
-    mutationFn: (data: { nome: string; descricao?: string }) => 
+    mutationFn: (data: { nome: string; descricao?: string }) =>
       client.CRIAR_TURMA(data),
     onSuccess: () => {
       toast.success("Turma criada com sucesso!");
@@ -34,7 +45,7 @@ function NovaTurmaPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!nome.trim()) {
       toast.error("Nome da turma é obrigatório");
       return;
@@ -138,17 +149,20 @@ function NovaTurmaPage() {
                   disabled={criarTurmaMutation.isPending || !nome.trim()}
                   className="min-w-[120px]"
                 >
-                  {criarTurmaMutation.isPending ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Criando...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4 mr-2" />
-                      Criar Turma
-                    </>
-                  )}
+                  {criarTurmaMutation.isPending
+                    ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2">
+                        </div>
+                        Criando...
+                      </>
+                    )
+                    : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Criar Turma
+                      </>
+                    )}
                 </Button>
               </div>
             </form>
@@ -170,9 +184,12 @@ function NovaTurmaPage() {
                   1
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-900">Upload de Template HTML</h4>
+                  <h4 className="font-medium text-gray-900">
+                    Upload de Template HTML
+                  </h4>
                   <p className="text-sm text-gray-600">
-                    Faça upload de um arquivo HTML com placeholders para os certificados
+                    Faça upload de um arquivo HTML com placeholders para os
+                    certificados
                   </p>
                 </div>
               </div>
@@ -196,7 +213,8 @@ function NovaTurmaPage() {
                 <div>
                   <h4 className="font-medium text-gray-900">Geração em Lote</h4>
                   <p className="text-sm text-gray-600">
-                    Execute a geração automática de certificados para todos os alunos
+                    Execute a geração automática de certificados para todos os
+                    alunos
                   </p>
                 </div>
               </div>
@@ -208,10 +226,18 @@ function NovaTurmaPage() {
   );
 }
 
+function NovaTurmaWithAuth() {
+  return (
+    <LoggedProvider>
+      <NovaTurmaPage />
+    </LoggedProvider>
+  )
+}
+
 // Export function that creates the route
 export default (parentRoute: RootRoute) =>
   createRoute({
     path: "/nova-turma",
-    component: NovaTurmaPage,
+    component: NovaTurmaWithAuth,
     getParentRoute: () => parentRoute,
   });

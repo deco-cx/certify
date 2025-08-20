@@ -1,34 +1,43 @@
 # 🎓 Decofier - Sistema de Certificados Digitais
 
-Uma plataforma completa para geração, gerenciamento e verificação de certificados digitais com templates HTML personalizáveis, construída com Deco + Cloudflare Workers.
+Uma plataforma completa para geração, gerenciamento e verificação de
+certificados digitais com templates HTML personalizáveis, construída com Deco +
+Cloudflare Workers.
 
 ## ✨ Funcionalidades Principais
 
 - **Templates HTML Personalizáveis**: Crie certificados únicos com HTML e CSS
-- **Processamento em Lote**: Gere centenas de certificados simultaneamente via CSV
+- **Processamento em Lote**: Gere centenas de certificados simultaneamente via
+  CSV
 - **Verificação Online**: Sistema de verificação oficial com URLs únicas
 - **Gerenciamento de Turmas**: Organize projetos por turmas e classes
 - **Envio de Emails**: Sistema integrado para envio automático de certificados
-- **Interface Responsiva**: Design moderno e adaptável para todos os dispositivos
+- **Interface Responsiva**: Design moderno e adaptável para todos os
+  dispositivos
 
 ## 🚀 Como Usar
 
 ### 1. **Criar Turma**
+
 - Acesse a seção "Turmas" e crie uma nova turma para seu projeto
 
 ### 2. **Upload de Template HTML**
+
 - Faça upload de um arquivo HTML com placeholders como `{{name}}`
 - O sistema substituirá automaticamente os placeholders pelos dados dos alunos
 
 ### 3. **Upload de CSV**
+
 - Envie um arquivo CSV com os dados dos alunos
 - Especifique qual coluna contém o nome do aluno
 
 ### 4. **Geração Automática**
+
 - Execute a geração em lote
 - O sistema criará certificados únicos para cada aluno
 
 ### 5. **Verificação Online**
+
 - Cada certificado recebe uma URL única para verificação oficial
 - Os certificados podem ser compartilhados e verificados online
 
@@ -59,6 +68,7 @@ Decofier/
 ## 📱 Responsividade
 
 O sistema é totalmente responsivo e funciona perfeitamente em:
+
 - **Desktop**: Interface completa com todas as funcionalidades
 - **Tablet**: Layout adaptado para telas médias
 - **Mobile**: Interface otimizada para smartphones
@@ -66,6 +76,7 @@ O sistema é totalmente responsivo e funciona perfeitamente em:
 ## 🔐 Verificação de Autenticidade
 
 Cada certificado possui:
+
 - **URL Única**: Link oficial para verificação
 - **Verificação Online**: Sistema de validação em tempo real
 - **Histórico de Verificações**: Rastreamento de quando foi verificado
@@ -96,6 +107,7 @@ O projeto está configurado para deploy automático no Cloudflare Workers:
 ### Estrutura de Domínios
 
 O projeto segue uma arquitetura baseada em domínios:
+
 - **Turmas**: Gerenciamento de classes educacionais
 - **Templates**: Gerenciamento de modelos HTML
 - **CSVs**: Processamento de dados em lote
@@ -108,4 +120,5 @@ Este projeto é de uso interno e educacional.
 
 ---
 
-**Decofier** - Transformando a forma como você gera e gerencia certificados digitais! 🎓✨
+**Decofier** - Transformando a forma como você gera e gerencia certificados
+digitais! 🎓✨
