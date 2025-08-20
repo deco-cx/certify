@@ -112,10 +112,11 @@ function CertificadoPage() {
 
   // Função para preparar dados para o LinkedIn
   const getLinkedInData = () => {
-    if (!certificado || !runData) return null;
+    if (!certificado) return null;
 
     const currentDate = new Date(certificado.criadoEm);
-    const certificateName = runData.run?.nome || "Certificado de Participação";
+    // Usa dados da run se disponível, senão usa valores padrão
+    const certificateName = runData?.run?.nome || "Certificado";
     const organizationName = "deco"; // Nome da organização para o LinkedIn
 
     return {
@@ -168,9 +169,13 @@ function CertificadoPage() {
           <div className="space-y-4 sm:hidden">
             {/* Title and info section */}
             <div className="space-y-2">
-              <h1 className="text-lg font-semibold text-gray-900 leading-tight">
-                {runData?.run?.nome || "Certificado"}
-              </h1>
+              {runData?.run?.nome ? (
+                <h1 className="text-lg font-semibold text-gray-900 leading-tight">
+                  {runData.run.nome}
+                </h1>
+              ) : (
+                <div className="h-6 bg-gray-200 rounded-md animate-pulse w-3/4"></div>
+              )}
               <p className="text-sm text-gray-600">
                 Certificado de {certificado.nome || `Aluno ${certificado.id}`}
               </p>
@@ -261,9 +266,13 @@ function CertificadoPage() {
               {/* Left side - Title and info */}
               <div className="flex-1 space-y-3">
                 <div className="space-y-1">
-                  <h1 className="text-2xl font-bold text-gray-900">
-                    {runData?.run?.nome || "Certificado"}
-                  </h1>
+                  {runData?.run?.nome ? (
+                    <h1 className="text-2xl font-bold text-gray-900">
+                      {runData.run.nome}
+                    </h1>
+                  ) : (
+                    <div className="h-8 bg-gray-200 rounded-md animate-pulse w-2/3"></div>
+                  )}
                   <p className="text-sm text-gray-600">
                     Certificado de {certificado.nome || `Aluno ${certificado.id}`}
                   </p>
