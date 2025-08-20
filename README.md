@@ -1,124 +1,164 @@
-# 🎓 Decofier - Sistema de Certificados Digitais
+# 🎓 Certify - Digital Certificate Management Platform
 
-Uma plataforma completa para geração, gerenciamento e verificação de
-certificados digitais com templates HTML personalizáveis, construída com Deco +
-Cloudflare Workers.
+A comprehensive platform for generating, managing, and verifying digital certificates with customizable HTML templates, built with Deco + Cloudflare Workers.
 
-## ✨ Funcionalidades Principais
+## ✨ Key Features
 
-- **Templates HTML Personalizáveis**: Crie certificados únicos com HTML e CSS
-- **Processamento em Lote**: Gere centenas de certificados simultaneamente via
-  CSV
-- **Verificação Online**: Sistema de verificação oficial com URLs únicas
-- **Gerenciamento de Turmas**: Organize projetos por turmas e classes
-- **Envio de Emails**: Sistema integrado para envio automático de certificados
-- **Interface Responsiva**: Design moderno e adaptável para todos os
-  dispositivos
+- **Custom HTML Templates**: Create unique certificates with HTML and CSS
+- **Batch Processing**: Generate hundreds of certificates simultaneously via CSV upload
+- **Online Verification**: Official verification system with unique URLs for each certificate
+- **Class Management**: Organize projects by classes/groups (turmas)
+- **Email Campaigns**: Integrated system for automatic certificate distribution
+- **PDF & PNG Export**: Generate certificates in multiple formats using API2PDF
+- **Responsive Interface**: Modern, adaptive design for all devices
 
-## 🚀 Como Usar
+## 🚀 How It Works
 
-### 1. **Criar Turma**
+### 1. **Create a Class (Turma)**
+- Access the "Classes" section and create a new class for your project
+- Add description and organize your certificate projects
 
-- Acesse a seção "Turmas" e crie uma nova turma para seu projeto
+### 2. **Upload HTML Template**
+- Upload an HTML file with placeholders like `{{name}}`, `{{email}}`, etc.
+- The system will automatically replace placeholders with student data
+- Preview and customize your certificate design
 
-### 2. **Upload de Template HTML**
+### 3. **Upload CSV Data**
+- Upload a CSV file with student information
+- Specify which columns contain names, emails, and other data
+- Map CSV columns to template placeholders
 
-- Faça upload de um arquivo HTML com placeholders como `{{name}}`
-- O sistema substituirá automaticamente os placeholders pelos dados dos alunos
+### 4. **Create Certificate Run**
+- Execute batch generation by creating a "run"
+- The system creates unique certificates for each student
+- Track progress and status of certificate generation
 
-### 3. **Upload de CSV**
+### 5. **Online Verification & Distribution**
+- Each certificate receives a unique verification URL
+- Certificates can be shared and verified online
+- Send certificates via email campaigns
 
-- Envie um arquivo CSV com os dados dos alunos
-- Especifique qual coluna contém o nome do aluno
-
-### 4. **Geração Automática**
-
-- Execute a geração em lote
-- O sistema criará certificados únicos para cada aluno
-
-### 5. **Verificação Online**
-
-- Cada certificado recebe uma URL única para verificação oficial
-- Os certificados podem ser compartilhados e verificados online
-
-## 📋 Estrutura do Projeto
+## 📋 Project Structure
 
 ```
-Decofier/
-├── server/           # Backend Deco + Cloudflare Workers
-│   ├── tools/        # Ferramentas MCP para operações
-│   ├── workflows/    # Fluxos de trabalho automatizados
-│   ├── schema.ts     # Schema do banco SQLite (Drizzle)
-│   └── main.ts       # Servidor principal
-├── view/             # Frontend React + Tailwind CSS
-│   ├── src/          # Código fonte React
-│   ├── components/   # Componentes UI reutilizáveis
-│   └── routes/       # Rotas da aplicação
-└── public/           # Arquivos estáticos
+certifier/
+├── server/                 # Deco MCP Server + Cloudflare Workers
+│   ├── tools/             # Domain-organized MCP tools
+│   │   ├── certificados.ts # Certificate management tools
+│   │   ├── templates.ts    # Template management tools
+│   │   ├── csvs.ts        # CSV processing tools
+│   │   ├── runs.ts        # Batch generation tools
+│   │   └── todos.ts       # Class/turma management tools
+│   ├── schema.ts          # SQLite database schema (Drizzle ORM)
+│   ├── main.ts           # Main server entry point
+│   └── workflows/        # Automated workflows
+├── view/                 # React Frontend + Tailwind CSS
+│   ├── src/
+│   │   ├── components/   # Reusable UI components
+│   │   ├── routes/       # TanStack Router routes
+│   │   ├── hooks/        # TanStack Query hooks for RPC
+│   │   └── lib/          # RPC client and utilities
+│   └── public/           # Static assets
+└── package.json          # Workspace configuration
 ```
 
-## 🛠️ Tecnologias
+## 🛠️ Technology Stack
 
-- **Frontend**: React 18, TypeScript, Tailwind CSS, TanStack Router
-- **Backend**: Deco MCP Server, Cloudflare Workers
-- **Database**: SQLite com Drizzle ORM
-- **UI**: shadcn/ui components, Lucide React icons
-- **Deploy**: Cloudflare Workers
+- **Frontend**: React 18, TypeScript, Tailwind CSS, TanStack Router, TanStack Query
+- **Backend**: Deco MCP Server, Cloudflare Workers, Drizzle ORM
+- **Database**: SQLite (Cloudflare Durable Objects)
+- **UI Components**: shadcn/ui, Lucide React icons
+- **Certificate Generation**: API2PDF for PDF/PNG conversion
+- **Deployment**: Cloudflare Workers
 
-## 📱 Responsividade
+## 📊 Database Schema
 
-O sistema é totalmente responsivo e funciona perfeitamente em:
+The application uses a comprehensive database schema with the following entities:
 
-- **Desktop**: Interface completa com todas as funcionalidades
-- **Tablet**: Layout adaptado para telas médias
-- **Mobile**: Interface otimizada para smartphones
+- **Turmas** (Classes): Organize certificate projects
+- **Templates**: Store HTML certificate templates with placeholders
+- **CSVs**: Manage uploaded student data
+- **Runs**: Track batch certificate generation processes
+- **Certificados**: Individual certificate records with verification URLs
+- **Campanhas Email**: Email campaign management
+- **Logs Email**: Email delivery tracking
 
-## 🔐 Verificação de Autenticidade
+## 🔐 Certificate Verification
 
-Cada certificado possui:
+Each certificate includes:
 
-- **URL Única**: Link oficial para verificação
-- **Verificação Online**: Sistema de validação em tempo real
-- **Histórico de Verificações**: Rastreamento de quando foi verificado
+- **Unique ID**: Cryptographically secure identifier
+- **Verification URL**: Public endpoint for authenticity validation
+- **Timestamp Tracking**: Record when certificates are verified
+- **Online Validation**: Real-time verification system
 
-## 📧 Sistema de Emails
+## 📧 Email System
 
-- **Templates Personalizáveis**: Configure assunto, corpo e assinatura
-- **Envio Automático**: Sistema integrado para envio em massa
-- **Rastreamento**: Controle de quais emails foram enviados
+- **Campaign Management**: Create and manage email campaigns
+- **Template Customization**: Configure subject, body, and signatures
+- **Batch Sending**: Automated mass email distribution
+- **Delivery Tracking**: Monitor email delivery status and failures
 
-## 🚀 Deploy
+## 🚀 Development
 
-O projeto está configurado para deploy automático no Cloudflare Workers:
+### Available Commands
 
-1. **Cloudflare Workers**: Backend serverless com banco de dados SQLite
-2. **Deco Platform**: Integração com ecossistema Deco para AI e ferramentas
-3. **Storage**: Sistema de arquivos integrado ao Cloudflare
+- `npm run dev` - Start development environment (frontend + backend)
+- `npm run gen` - Generate types for Deco integrations
+- `npm run gen:self` - Generate types for your own tools/workflows
+- `npm run deploy` - Deploy to production (Cloudflare Workers)
+- `npm run db:generate` - Generate database migration files
 
-## 🎯 Desenvolvimento
+### Development Workflow
 
-### Comandos Disponíveis
+1. **Start Development**: Run `npm run dev` to start both frontend and backend
+2. **Add New Features**: Create tools in `server/tools/` organized by domain
+3. **Generate Types**: Use `npm run gen:self` after adding new tools
+4. **Frontend Integration**: Create TanStack Query hooks in `view/src/hooks/`
+5. **Deploy**: Use `npm run deploy` for production deployment
 
-- `npm run dev` - Inicia o ambiente de desenvolvimento
-- `npm run gen` - Gera tipos para integrações Deco
-- `npm run gen:self` - Gera tipos para suas próprias tools/workflows
-- `npm run deploy` - Deploy para produção
+### Domain Architecture
 
-### Estrutura de Domínios
+The project follows domain-based organization:
 
-O projeto segue uma arquitetura baseada em domínios:
+- **Certificados**: Certificate generation and management
+- **Templates**: HTML template management and processing
+- **CSVs**: Data import and processing
+- **Runs**: Batch processing and workflow management
+- **Turmas**: Class/project organization
+- **Users**: Authentication and user management
 
-- **Turmas**: Gerenciamento de classes educacionais
-- **Templates**: Gerenciamento de modelos HTML
-- **CSVs**: Processamento de dados em lote
-- **Certificados**: Geração e verificação de certificados
-- **Emails**: Sistema de campanhas e envio
+## 🌐 Deployment
 
-## 📝 Licença
+The application is deployed on Cloudflare Workers:
 
-Este projeto é de uso interno e educacional.
+- **Serverless Backend**: Deco MCP server with automatic scaling
+- **Edge Distribution**: Global CDN for fast certificate access
+- **Durable Objects**: Persistent SQLite database storage
+- **Static Assets**: Frontend served via Cloudflare Workers
+
+## 📱 Responsive Design
+
+Fully responsive interface optimized for:
+
+- **Desktop**: Complete feature set with advanced management tools
+- **Tablet**: Adapted layout for medium screens
+- **Mobile**: Optimized interface for certificate viewing and basic management
+
+## 🔧 Configuration
+
+The application requires:
+
+- **API2PDF API Key**: For PDF/PNG certificate generation
+- **Deco Platform**: Integration with Deco ecosystem
+- **Cloudflare Workers**: Hosting and database infrastructure
+
+## 📝 License
+
+This project is developed by Deco for educational and internal use.
 
 ---
 
-**Decofier** - Transformando a forma como você gera e gerencia certificados
-digitais! 🎓✨
+**Certify** - Transforming how you generate and manage digital certificates! 🎓✨
+
+*Built with ❤️ by the Deco team*
