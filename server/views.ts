@@ -15,6 +15,6 @@ export const views: CreateMCPServerOptions<Env, typeof StateSchema>["views"] =
     {
       title: "Certify",
       icon: "badge",
-      url: "https://deco-certify.deco.page",
+      url: "https://deco.chat/deco-camp-certificados",
     },
   ];

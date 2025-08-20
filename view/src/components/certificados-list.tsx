@@ -278,7 +278,7 @@ export function CertificadosList({ turmaId }: CertificadosListProps) {
                         <div className="flex gap-2 ml-4">
                           <Button variant="outline" size="sm" asChild>
                             <a
-                              href={`/certificado/${certificado.id}`}
+                              href={`https://deco.chat/deco-camp-certificados/${certificado.id}`}
                               target="_blank"
                               rel="noopener noreferrer"
                             >
@@ -311,12 +311,12 @@ export function CertificadosList({ turmaId }: CertificadosListProps) {
                       <div className="mt-2">
                         <span className="font-medium">URL de Verificação:</span>
                         <a
-                          href={`/certificado/${certificado.id}`}
+                          href={`https://deco.chat/deco-camp-certificados/${certificado.id}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="ml-2 text-blue-600 hover:text-blue-800 underline break-all"
                         >
-                          {`${window.location.origin}/certificado/${certificado.id}`}
+                          {`https://deco.chat/deco-camp-certificados/${certificado.id}`}
                         </a>
                       </div>
                     </CardContent>

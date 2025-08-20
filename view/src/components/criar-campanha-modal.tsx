@@ -140,7 +140,7 @@ Equipe`);
     return templateHtml
       .replace(/@nome/g, "João Silva")
       .replace(/@email/g, "joao@exemplo.com")
-      .replace(/@link_certificado/g, "#");
+      .replace(/@link_certificado/g, "https://deco.chat/deco-camp-certificados/exemplo-123");
   };
 
   const placeholders = [

@@ -500,7 +500,7 @@ export const createExecutarRunTool = (env: Env) =>
               nome: nome,
               status: "completed",
               html: htmlProcessado, // HTML processado e personalizado
-              generateUrl: `/certificado/${i}`, // URL para visualização
+              generateUrl: `https://deco.chat/deco-camp-certificados/${i}`, // URL para visualização
               verificadoEm: null,
               emailEnviado: false,
               emailDestinatario: email,
