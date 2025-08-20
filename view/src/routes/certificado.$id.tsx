@@ -398,14 +398,6 @@ function CertificadoPage() {
                       style={{ display: iframeLoading ? "none" : "block" }}
                     />
                   </div>
-                  {/* Indicador de carregamento e instruções */}
-                  <div className="mt-4 p-3 bg-gray-100 rounded-md text-center text-sm text-gray-600 sm:text-xs sm:p-2">
-                    <p>
-                      📱 <strong>Dica:</strong>{" "}
-                      Use o zoom do navegador para visualizar melhor o
-                      certificado em dispositivos móveis
-                    </p>
-                  </div>
                 </div>
               )
               : (
