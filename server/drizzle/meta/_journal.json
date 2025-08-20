@@ -8,6 +8,13 @@
       "when": 1755708326997,
       "tag": "0000_vengeful_slapstick",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1755727051227,
+      "tag": "0001_cute_shinobi_shaw",
+      "breakpoints": true
     }
   ]
 }

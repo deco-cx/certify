@@ -24,6 +24,7 @@ import { useListarCSVs } from "../hooks/useCSVs";
 import { useListarRuns } from "../hooks/useRuns";
 import { Download, ExternalLink, FileText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { UnicornLoading } from "./unicorn-loading";
 
 interface CertificadosListProps {
   turmaId: number;
@@ -47,7 +48,7 @@ export function CertificadosList({ turmaId }: CertificadosListProps) {
   const handleDeleteCertificado = async (certificadoId: number) => {
     if (confirm("Tem certeza que deseja deletar este certificado?")) {
       try {
-        await deletarCertificado.mutateAsync({ id: certificadoId });
+        await deletarCertificado.mutateAsync({ id: certificadoId.toString() });
         toast.success("Certificado deletado com sucesso!");
       } catch (error) {
         console.error("Erro ao deletar certificado:", error);
@@ -128,12 +129,10 @@ export function CertificadosList({ turmaId }: CertificadosListProps) {
 
   if (isLoadingCertificados) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Certificados Gerados</CardTitle>
-          <CardDescription>Carregando...</CardDescription>
-        </CardHeader>
-      </Card>
+      <UnicornLoading 
+        message="Carregando certificados..." 
+        fullScreen={false}
+      />
     );
   }
 

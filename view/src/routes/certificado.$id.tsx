@@ -19,6 +19,7 @@ import {
 } from "@/hooks/useCertificados";
 import { useBuscarRunPorId } from "@/hooks/useRuns";
 import { LinkedInButton } from "@/components/linkedin-button";
+import { UnicornLoading } from "@/components/unicorn-loading";
 
 function CertificadoPage() {
   const { id } = useParams({ from: "/certificado/$id" });
@@ -135,15 +136,10 @@ function CertificadoPage() {
 
   if (isLoadingCertificado) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-24 w-24 sm:h-32 sm:w-32 border-b-2 border-blue-600 mx-auto">
-          </div>
-          <p className="mt-4 text-gray-600 text-sm sm:text-base">
-            Carregando certificado...
-          </p>
-        </div>
-      </div>
+      <UnicornLoading 
+        message="Carregando certificado..." 
+        fullScreen={true}
+      />
     );
   }
 
@@ -390,12 +386,11 @@ function CertificadoPage() {
                   {/* Container responsivo para o iframe */}
                   <div className="relative w-full h-[800px] border border-gray-300 rounded-lg overflow-hidden bg-white transition-all duration-300 hover:shadow-lg hover:shadow-black/10">
                     {iframeLoading && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-white/90 z-10 animate-[fadeIn_0.3s_ease]">
-                        <div className="text-center">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2">
-                          </div>
-                          <p className="text-sm">Carregando certificado...</p>
-                        </div>
+                      <div className="absolute inset-0 z-10">
+                        <UnicornLoading 
+                          message="Carregando certificado..." 
+                          fullScreen={false}
+                        />
                       </div>
                     )}
                     <iframe

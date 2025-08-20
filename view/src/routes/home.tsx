@@ -28,6 +28,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { client } from "@/lib/rpc";
 import LoggedProvider from "@/components/logged-provider";
+import { UnicornLoading } from "@/components/unicorn-loading";
 
 interface Turma {
   id: number;
@@ -77,13 +78,10 @@ function HomePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4">
-          </div>
-          <p className="text-gray-600">Carregando...</p>
-        </div>
-      </div>
+      <UnicornLoading 
+        message="Carregando turmas..." 
+        fullScreen={true}
+      />
     );
   }
 

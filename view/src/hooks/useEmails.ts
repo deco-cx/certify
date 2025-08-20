@@ -19,6 +19,8 @@ export const useCriarCampanhaEmail = () => {
       nome: string;
       assunto: string;
       mensagem: string;
+      templateHtml?: string;
+      tipoTemplate: "texto" | "html";
     }) => client.CRIAR_CAMPANHA_EMAIL(data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ 

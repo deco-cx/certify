@@ -23,6 +23,8 @@ export const createCriarCampanhaEmailTool = (env: Env) =>
       nome: z.string(),
       assunto: z.string(),
       mensagem: z.string(),
+      templateHtml: z.string().optional(),
+      tipoTemplate: z.enum(["texto", "html"]).default("texto"),
     }),
     outputSchema: z.object({
       campanhaId: z.number(),
@@ -63,6 +65,8 @@ export const createCriarCampanhaEmailTool = (env: Env) =>
           nome: context.nome,
           assunto: context.assunto,
           mensagem: context.mensagem,
+          templateHtml: context.templateHtml,
+          tipoTemplate: context.tipoTemplate,
           status: "draft",
           totalEmails: certificados.length,
           emailsEnviados: 0,
@@ -96,6 +100,8 @@ export const createListarCampanhasEmailTool = (env: Env) =>
         nome: z.string(),
         assunto: z.string(),
         mensagem: z.string(),
+        templateHtml: z.string().nullable(),
+        tipoTemplate: z.string(),
         status: z.string(),
         totalEmails: z.number(),
         emailsEnviados: z.number(),
@@ -120,6 +126,8 @@ export const createListarCampanhasEmailTool = (env: Env) =>
             nome: campanha.nome,
             assunto: campanha.assunto,
             mensagem: campanha.mensagem,
+            templateHtml: campanha.templateHtml,
+            tipoTemplate: campanha.tipoTemplate || "texto",
             status: campanha.status || "draft",
             totalEmails: campanha.totalEmails,
             emailsEnviados: campanha.emailsEnviados,
@@ -242,20 +250,26 @@ export const createEnviarCampanhaEmailTool = (env: Env) =>
           try {
             // Processar placeholders na mensagem
             let mensagemProcessada = campanhaData.mensagem;
+            let templateHtmlProcessado = campanhaData.templateHtml || null;
             let assuntoProcessado = campanhaData.assunto;
 
             // Dados do certificado
             const dadosCertificado = JSON.parse(certificado.dados || "{}");
             
-            // Substituir placeholders básicos
-            mensagemProcessada = mensagemProcessada
-              .replace(/@nome/g, certificado.nome || dadosCertificado.nome || "")
-              .replace(/@email/g, certificado.emailDestinatario)
-              .replace(/@link_certificado/g, `https://deco-certify.deco.page/certificado/${certificado.id}`);
+            // Função para substituir placeholders
+            const substituirPlaceholders = (texto: string) => {
+              return texto
+                .replace(/@nome/g, certificado.nome || dadosCertificado.nome || "")
+                .replace(/@email/g, certificado.emailDestinatario)
+                .replace(/@link_certificado/g, `https://deco.chat/deco-camp-certificados/${certificado.id}`);
+            };
 
-            assuntoProcessado = assuntoProcessado
-              .replace(/@nome/g, certificado.nome || dadosCertificado.nome || "")
-              .replace(/@email/g, certificado.emailDestinatario);
+            // Substituir placeholders básicos
+            mensagemProcessada = substituirPlaceholders(mensagemProcessada);
+            assuntoProcessado = substituirPlaceholders(assuntoProcessado);
+            if (templateHtmlProcessado) {
+              templateHtmlProcessado = substituirPlaceholders(templateHtmlProcessado);
+            }
 
             // Buscar dados do CSV se necessário (para placeholders adicionais)
             if (certificado.csvId) {
@@ -274,14 +288,13 @@ export const createEnviarCampanhaEmailTool = (env: Env) =>
                       Object.keys(linhaCsv).forEach(coluna => {
                         const placeholder = `@${coluna}`;
                         const valor = String(linhaCsv[coluna] || "");
-                        mensagemProcessada = mensagemProcessada.replace(
-                          new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), 
-                          valor
-                        );
-                        assuntoProcessado = assuntoProcessado.replace(
-                          new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), 
-                          valor
-                        );
+                        const regex = new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+                        
+                        mensagemProcessada = mensagemProcessada.replace(regex, valor);
+                        assuntoProcessado = assuntoProcessado.replace(regex, valor);
+                        if (templateHtmlProcessado) {
+                          templateHtmlProcessado = templateHtmlProcessado.replace(regex, valor);
+                        }
                       });
                     }
                   } catch (jsonError) {
@@ -293,14 +306,17 @@ export const createEnviarCampanhaEmailTool = (env: Env) =>
               }
             }
 
-            // Enviar email via Resend
-            const emailResult = await env.RESEND["resend-actions-emails-send-ts"]({
+            // Determinar conteúdo do email baseado no tipo de template
+            const emailContent = {
               from: "Deco Camp <daniel@deco.chat>",
               to: certificado.emailDestinatario,
               subject: assuntoProcessado,
-              html: mensagemProcessada.replace(/\n/g, '<br>'),
+              html: templateHtmlProcessado || mensagemProcessada.replace(/\n/g, '<br>'),
               text: mensagemProcessada,
-            });
+            };
+
+            // Enviar email via Resend
+            const emailResult = await env.RESEND["resend-actions-emails-send-ts"](emailContent);
 
             emailsEnviados++;
 

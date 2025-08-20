@@ -99,6 +99,8 @@ export const campanhasEmailTable = sqliteTable(tableName("campanhas_email"), {
   nome: text("nome").notNull(),
   assunto: text("assunto").notNull(),
   mensagem: text("mensagem").notNull(),
+  templateHtml: text("template_html"), // Template HTML para emails
+  tipoTemplate: text("tipo_template", { enum: ["texto", "html"] }).default("texto"),
   status: text("status", { enum: ["draft", "sending", "completed", "error"] })
     .notNull(),
   totalEmails: integer("total_emails").notNull(),

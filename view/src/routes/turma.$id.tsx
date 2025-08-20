@@ -40,6 +40,7 @@ import { CertificadosList } from "@/components/certificados-list";
 import { CriarCampanhaModal } from "@/components/criar-campanha-modal";
 import { useListarCampanhasEmail, useEnviarCampanhaEmail, useDeletarCampanhaEmail } from "@/hooks/useEmails";
 import LoggedProvider from "@/components/logged-provider";
+import { UnicornLoading } from "@/components/unicorn-loading";
 
 function TurmaDetalhesPage() {
   const navigate = useNavigate();
@@ -74,13 +75,10 @@ function TurmaDetalhesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4">
-          </div>
-          <p className="text-gray-600">Carregando...</p>
-        </div>
-      </div>
+      <UnicornLoading 
+        message="Carregando turma..." 
+        fullScreen={true}
+      />
     );
   }
 
@@ -322,11 +320,10 @@ function TemplatesList({ turmaId, onShowUpload, onViewTemplate }: {
 
   if (isLoading) {
     return (
-      <div className="text-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4">
-        </div>
-        <p className="text-gray-600">Carregando templates...</p>
-      </div>
+      <UnicornLoading 
+        message="Carregando templates..." 
+        fullScreen={false}
+      />
     );
   }
 
@@ -440,11 +437,10 @@ function CSVsList(
 
   if (isLoading) {
     return (
-      <div className="text-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4">
-        </div>
-        <p className="text-gray-600">Carregando CSVs...</p>
-      </div>
+      <UnicornLoading 
+        message="Carregando CSVs..." 
+        fullScreen={false}
+      />
     );
   }
 
@@ -597,11 +593,10 @@ function CampanhasList({ turmaId, onShowCriar }: { turmaId: number; onShowCriar:
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4">
-            </div>
-            <p className="text-gray-600">Carregando campanhas...</p>
-          </div>
+          <UnicornLoading 
+            message="Carregando campanhas..." 
+            fullScreen={false}
+          />
         </CardContent>
       </Card>
     );
