@@ -11,6 +11,7 @@ import { templatesTools } from "./templates.ts";
 import { csvsTools } from "./csvs.ts";
 import { runsTools } from "./runs.ts";
 import { certificadosTools } from "./certificados.ts";
+import { emailsTools } from "./emails.ts";
 
 export const tools = [
   ...turmasTools,
@@ -19,6 +20,7 @@ export const tools = [
   ...csvsTools,
   ...runsTools,
   ...certificadosTools,
+  ...emailsTools,
 ];
 
 // Re-export for direct access
@@ -28,3 +30,4 @@ export { templatesTools } from "./templates.ts";
 export { csvsTools } from "./csvs.ts";
 export { runsTools } from "./runs.ts";
 export { certificadosTools } from "./certificados.ts";
+export { emailsTools } from "./emails.ts";

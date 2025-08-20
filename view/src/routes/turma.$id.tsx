@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft,
   Eye,
@@ -22,6 +23,11 @@ import {
   Trash2,
   Upload,
   Users,
+  Send,
+  Plus,
+  Clock,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -31,6 +37,8 @@ import { UploadCSV } from "@/components/upload-csv";
 import { ViewTemplate } from "@/components/view-template";
 import { RunsList } from "@/components/runs-list";
 import { CertificadosList } from "@/components/certificados-list";
+import { CriarCampanhaModal } from "@/components/criar-campanha-modal";
+import { useListarCampanhasEmail, useEnviarCampanhaEmail, useDeletarCampanhaEmail } from "@/hooks/useEmails";
 import LoggedProvider from "@/components/logged-provider";
 
 function TurmaDetalhesPage() {
@@ -40,6 +48,7 @@ function TurmaDetalhesPage() {
   const [showUploadCSV, setShowUploadCSV] = useState(false);
   const [showViewTemplate, setShowViewTemplate] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+  const [showCriarCampanha, setShowCriarCampanha] = useState(false);
 
   // Buscar dados da turma
   const { data: turmaData, isLoading } = useQuery({
@@ -229,36 +238,7 @@ function TurmaDetalhesPage() {
 
           {/* Tab Emails */}
           <TabsContent value="emails">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Mail className="h-5 w-5 mr-2" />
-                  Campanhas de Email
-                </CardTitle>
-                <CardDescription>
-                  Configure e envie emails com os certificados gerados
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12">
-                  <Mail className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Nenhuma campanha de email criada
-                  </h3>
-                  <p className="text-gray-600 mb-6">
-                    Primeiro, gere os certificados para então enviar por email
-                  </p>
-                  <Button
-                    disabled
-                    onClick={() =>
-                      toast.info("Funcionalidade em desenvolvimento")}
-                  >
-                    <Mail className="h-4 w-4 mr-2" />
-                    Criar Campanha
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <CampanhasList turmaId={turma.id} onShowCriar={() => setShowCriarCampanha(true)} />
           </TabsContent>
         </Tabs>
       </main>
@@ -287,6 +267,14 @@ function TurmaDetalhesPage() {
             setShowViewTemplate(false);
             setSelectedTemplate(null);
           }}
+        />
+      )}
+
+      {/* Modal de Criar Campanha */}
+      {showCriarCampanha && (
+        <CriarCampanhaModal
+          turmaId={turma.id}
+          onClose={() => setShowCriarCampanha(false)}
         />
       )}
     </div>
@@ -532,6 +520,199 @@ function CSVsList(
         ))}
       </div>
     </div>
+  );
+}
+
+// Componente para listar campanhas de email
+function CampanhasList({ turmaId, onShowCriar }: { turmaId: number; onShowCriar: () => void }) {
+  const { data: campanhasData, isLoading } = useListarCampanhasEmail(turmaId);
+  const enviarCampanhaMutation = useEnviarCampanhaEmail();
+  const deletarCampanhaMutation = useDeletarCampanhaEmail();
+  const [campanhaEnviando, setCampanhaEnviando] = useState<number | null>(null);
+
+  const campanhas = campanhasData?.campanhas || [];
+
+  const formatarData = (timestamp: string) => {
+    return new Date(timestamp).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "draft":
+        return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Rascunho</Badge>;
+      case "sending":
+        return <Badge className="bg-blue-500"><Send className="h-3 w-3 mr-1" />Enviando</Badge>;
+      case "completed":
+        return <Badge className="bg-green-500"><CheckCircle className="h-3 w-3 mr-1" />Concluída</Badge>;
+      case "error":
+        return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Erro</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
+  const handleEnviarCampanha = async (campanhaId: number) => {
+    setCampanhaEnviando(campanhaId);
+    try {
+      const result = await enviarCampanhaMutation.mutateAsync(campanhaId);
+      toast.success(result.message);
+    } catch (error) {
+      console.error("Erro ao enviar campanha:", error);
+      toast.error("Erro ao enviar campanha. Tente novamente.");
+    } finally {
+      setCampanhaEnviando(null);
+    }
+  };
+
+  const handleDeletarCampanha = async (campanhaId: number, nomeCampanha: string) => {
+    if (!confirm(`Tem certeza que deseja deletar a campanha "${nomeCampanha}"? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+
+    try {
+      const result = await deletarCampanhaMutation.mutateAsync(campanhaId);
+      toast.success(result.message);
+    } catch (error) {
+      console.error("Erro ao deletar campanha:", error);
+      toast.error("Erro ao deletar campanha. Tente novamente.");
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Mail className="h-5 w-5 mr-2" />
+            Campanhas de Email
+          </CardTitle>
+          <CardDescription>
+            Configure e envie emails com os certificados gerados
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4">
+            </div>
+            <p className="text-gray-600">Carregando campanhas...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (campanhas.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Mail className="h-5 w-5 mr-2" />
+            Campanhas de Email
+          </CardTitle>
+          <CardDescription>
+            Configure e envie emails com os certificados gerados
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-12">
+            <Mail className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Nenhuma campanha de email criada
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Crie campanhas para enviar certificados por email aos alunos
+            </p>
+            <Button onClick={onShowCriar}>
+              <Plus className="h-4 w-4 mr-2" />
+              Criar Campanha
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Mail className="h-5 w-5 mr-2" />
+          Campanhas de Email
+        </CardTitle>
+        <CardDescription>
+          Configure e envie emails com os certificados gerados
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h4 className="text-lg font-medium">Campanhas Criadas</h4>
+            <Button onClick={onShowCriar}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Campanha
+            </Button>
+          </div>
+
+          <div className="grid gap-4">
+            {campanhas.map((campanha) => (
+              <Card key={campanha.id} className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h5 className="font-medium text-gray-900">{campanha.nome}</h5>
+                      {getStatusBadge(campanha.status)}
+                    </div>
+                    <p className="text-sm text-gray-600 mb-2">{campanha.assunto}</p>
+                    <div className="flex items-center space-x-4 text-xs text-gray-500">
+                      <span>Criado em {formatarData(campanha.criadoEm)}</span>
+                      <span>{campanha.emailsEnviados}/{campanha.totalEmails} enviados</span>
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    {campanha.status === "draft" && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleEnviarCampanha(campanha.id)}
+                        disabled={campanhaEnviando === campanha.id}
+                      >
+                        <Send className="h-4 w-4 mr-2" />
+                        {campanhaEnviando === campanha.id ? "Enviando..." : "Enviar"}
+                      </Button>
+                    )}
+                    {campanha.status === "completed" && (
+                      <div className="text-sm text-green-600 font-medium">
+                        ✓ Enviada
+                      </div>
+                    )}
+                    {campanha.status === "error" && (
+                      <div className="text-sm text-red-600 font-medium">
+                        ✗ Erro no envio
+                      </div>
+                    )}
+                    {campanha.status !== "sending" && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeletarCampanha(campanha.id, campanha.nome)}
+                        disabled={deletarCampanhaMutation.isPending}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
