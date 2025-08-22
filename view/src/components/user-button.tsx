@@ -206,7 +206,11 @@ function LoginButton() {
       {/* Okay to use <a> instead of <Link> here because it's a route handled by the server */}
       <a href="/oauth/start" className="inline-flex items-center gap-2">
         <span>Sign In</span>
-        <img src="/d.png" alt="Deco" className="w-4 h-4" />
+        <img 
+          src="https://assets.decocache.com/starting/4b0a748e-6470-4eed-acc8-38aeb478f555/certify_logo_nav.svg" 
+          alt="Certify" 
+          className="w-4 h-4" 
+        />
       </a>
     </Button>
   );
@@ -230,7 +234,11 @@ export function UserButton() {
           className="bg-slate-700 text-slate-200 hover:bg-slate-600 hover:text-white border-slate-600"
         >
           <span>@{username}</span>
-          <img src="/d.png" alt="Deco" className="w-4 h-4 ml-2" />
+          <img 
+            src="https://assets.decocache.com/starting/4b0a748e-6470-4eed-acc8-38aeb478f555/certify_logo_nav.svg" 
+            alt="Certify" 
+            className="w-4 h-4 ml-2" 
+          />
         </Button>
       </PopoverTrigger>
 

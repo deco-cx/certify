@@ -68,7 +68,7 @@ Equipe`);
         </div>
         <div class="footer">
             <p>Este email foi enviado para @email</p>
-            <p>© 2024 Deco - Todos os direitos reservados</p>
+            <p>© 2024 Certify - Todos os direitos reservados</p>
         </div>
     </div>
 </body>

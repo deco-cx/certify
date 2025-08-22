@@ -150,7 +150,7 @@ export function RunsList({ turmaId }: RunsListProps) {
           : (
             <div className="space-y-4">
               {runsData.runs.map((run: any) => (
-                <Card key={run.id} className="border-l-4 border-l-blue-500">
+                <Card key={run.id}>
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
@@ -260,27 +260,30 @@ export function RunsList({ turmaId }: RunsListProps) {
       {/* Modal de detalhes da run */}
       {showRunDetalhes && runSelecionada && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Detalhes da Run: {runSelecionada.nome}
-                </h2>
-                <p className="text-gray-600 mt-1">
-                  Status:{" "}
-                  <Badge className={getStatusColor(runSelecionada.status)}>
-                    {getStatusText(runSelecionada.status)}
-                  </Badge>
-                </p>
+          <Card className="max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-xl">
+                    Detalhes da Run: {runSelecionada.nome}
+                  </CardTitle>
+                  <CardDescription className="flex items-center gap-2 mt-2">
+                    Status:{" "}
+                    <Badge className={getStatusColor(runSelecionada.status)}>
+                      {getStatusText(runSelecionada.status)}
+                    </Badge>
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowRunDetalhes(false)}
+                >
+                  ✕
+                </Button>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowRunDetalhes(false)}
-              >
-                ✕
-              </Button>
-            </div>
+            </CardHeader>
+            <CardContent>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
@@ -383,7 +386,8 @@ export function RunsList({ turmaId }: RunsListProps) {
                 </p>
               </div>
             )}
-          </div>
+            </CardContent>
+          </Card>
         </div>
       )}
     </Card>

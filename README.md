@@ -50,7 +50,7 @@ Workers.
 ## 📋 Project Structure
 
 ```
-certifier/
+certify/
 ├── server/                 # Deco MCP Server + Cloudflare Workers
 │   ├── tools/             # Domain-organized MCP tools
 │   │   ├── certificados.ts # Certificate management tools
@@ -166,11 +166,11 @@ The application requires:
 
 ## 📝 License
 
-This project is developed by Deco for educational and internal use.
+This project is developed for educational and professional certificate management.
 
 ---
 
 **Certify** - Transforming how you generate and manage digital certificates!
 🎓✨
 
-_Built with ❤️ by the Deco team_
+_Built with ❤️ for education and professional development_

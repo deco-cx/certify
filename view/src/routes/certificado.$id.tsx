@@ -285,7 +285,7 @@ function CertificadoPage() {
                   <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg">
                     <CheckCircle className="h-4 w-4" />
                     <span className="text-sm font-medium">
-                      Verificado pela Decofier
+                      Verificado pela Certify
                     </span>
                   </div>
                 </div>

@@ -20,7 +20,6 @@ import {
   Eye,
   FileText,
   Mail,
-  Trash2,
   Upload,
   Users,
   Send,
@@ -28,15 +27,18 @@ import {
   Clock,
   CheckCircle,
   XCircle,
+  Database,
+  Play,
+  Award,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { client } from "@/lib/rpc";
 import { UploadTemplate } from "@/components/upload-template";
 import { UploadCSV } from "@/components/upload-csv";
-import { ViewTemplate } from "@/components/view-template";
+import { ViewTemplate } from "../components/view-template";
 import { RunsList } from "@/components/runs-list";
-import { CertificadosList } from "@/components/certificados-list";
+// import { CertificadosList } from "@/components/certificados-list";
 import { CriarCampanhaModal } from "@/components/criar-campanha-modal";
 import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
 import { useListarCampanhasEmail, useEnviarCampanhaEmail, useDeletarCampanhaEmail } from "@/hooks/useEmails";
@@ -104,25 +106,27 @@ function TurmaDetalhesPage() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-6">
-            <div className="flex items-center">
+          <div className="relative flex items-center justify-center py-6">
+            {/* Botão Voltar - Posição Absoluta à Esquerda */}
+            <div className="absolute left-0">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleBack}
-                className="mr-4"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Voltar
               </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {turma.nome}
-                </h1>
-                <p className="text-sm text-gray-600">
-                  {turma.descricao || "Gerenciar projetos de certificados"}
-                </p>
-              </div>
+            </div>
+            
+            {/* Título e Descrição Centralizados */}
+            <div className="text-center">
+              <h1 className="text-2xl font-bold text-gray-900">
+                {turma.nome}
+              </h1>
+              <p className="text-sm text-gray-600 mt-1">
+                {turma.descricao || "Gerenciar projetos de certificados"}
+              </p>
             </div>
           </div>
         </div>
@@ -170,14 +174,46 @@ function TurmaDetalhesPage() {
         </div>
 
         {/* Tabs de Funcionalidades */}
-        <Tabs defaultValue="templates" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="templates">Templates</TabsTrigger>
-            <TabsTrigger value="csvs">Dados CSV</TabsTrigger>
-            <TabsTrigger value="runs">Runs</TabsTrigger>
-            <TabsTrigger value="certificados">Certificados</TabsTrigger>
-            <TabsTrigger value="emails">Emails</TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="templates" className="space-y-8">
+          <div className="relative p-1.5 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl shadow-inner border border-gray-200">
+            <TabsList className="relative grid w-full grid-cols-5 bg-transparent gap-1 h-16 p-0">
+              <TabsTrigger 
+                value="templates" 
+                className="relative flex flex-col items-center justify-center gap-1.5 px-4 py-3 text-sm font-medium transition-all duration-300 ease-in-out data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-lg data-[state=active]:shadow-blue-100/50 data-[state=active]:scale-105 data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-700 data-[state=inactive]:hover:bg-white/50 rounded-lg h-full transform"
+              >
+                <FileText className="h-5 w-5 transition-all duration-300" />
+                <span className="text-xs font-medium">Templates</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="csvs"
+                className="relative flex flex-col items-center justify-center gap-1.5 px-4 py-3 text-sm font-medium transition-all duration-300 ease-in-out data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-lg data-[state=active]:shadow-blue-100/50 data-[state=active]:scale-105 data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-700 data-[state=inactive]:hover:bg-white/50 rounded-lg h-full transform"
+              >
+                <Database className="h-5 w-5 transition-all duration-300" />
+                <span className="text-xs font-medium">Dados CSV</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="runs"
+                className="relative flex flex-col items-center justify-center gap-1.5 px-4 py-3 text-sm font-medium transition-all duration-300 ease-in-out data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-lg data-[state=active]:shadow-blue-100/50 data-[state=active]:scale-105 data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-700 data-[state=inactive]:hover:bg-white/50 rounded-lg h-full transform"
+              >
+                <Play className="h-5 w-5 transition-all duration-300" />
+                <span className="text-xs font-medium">Runs</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="certificados"
+                className="relative flex flex-col items-center justify-center gap-1.5 px-4 py-3 text-sm font-medium transition-all duration-300 ease-in-out data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-lg data-[state=active]:shadow-blue-100/50 data-[state=active]:scale-105 data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-700 data-[state=inactive]:hover:bg-white/50 rounded-lg h-full transform"
+              >
+                <Award className="h-5 w-5 transition-all duration-300" />
+                <span className="text-xs font-medium">Certificados</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="emails"
+                className="relative flex flex-col items-center justify-center gap-1.5 px-4 py-3 text-sm font-medium transition-all duration-300 ease-in-out data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-lg data-[state=active]:shadow-blue-100/50 data-[state=active]:scale-105 data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-700 data-[state=inactive]:hover:bg-white/50 rounded-lg h-full transform"
+              >
+                <Mail className="h-5 w-5 transition-all duration-300" />
+                <span className="text-xs font-medium">Emails</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Tab Templates */}
           <TabsContent value="templates">
@@ -580,7 +616,7 @@ function CampanhasList({ turmaId, onShowCriar }: { turmaId: number; onShowCriar:
     setCampanhaEnviando(campanhaId);
     try {
       const result = await enviarCampanhaMutation.mutateAsync(campanhaId);
-      toast.success(result.message);
+      toast.success((result as any).message);
     } catch (error) {
       console.error("Erro ao enviar campanha:", error);
       toast.error("Erro ao enviar campanha. Tente novamente.");
@@ -593,7 +629,7 @@ function CampanhasList({ turmaId, onShowCriar }: { turmaId: number; onShowCriar:
     setDeletingCampanhaId(campanhaId);
     try {
       const result = await deletarCampanhaMutation.mutateAsync(campanhaId);
-      toast.success(result.message);
+      toast.success((result as any).message);
       setDeletingCampanhaId(null);
     } catch (error) {
       console.error("Erro ao deletar campanha:", error);
@@ -677,7 +713,7 @@ function CampanhasList({ turmaId, onShowCriar }: { turmaId: number; onShowCriar:
           </div>
 
           <div className="grid gap-4">
-            {campanhas.map((campanha) => (
+            {campanhas.map((campanha: any) => (
               <Card key={campanha.id} className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
@@ -727,6 +763,152 @@ function CampanhasList({ turmaId, onShowCriar }: { turmaId: number; onShowCriar:
             ))}
           </div>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Componente para listar certificados
+function CertificadosList({ turmaId }: { turmaId: number }) {
+  const [runIdFiltro, setRunIdFiltro] = useState<number | null>(null);
+
+  const { data: certificadosData, isLoading: isLoadingCertificados } = useQuery({
+    queryKey: ["certificados", turmaId, runIdFiltro],
+    queryFn: () => client.LISTAR_CERTIFICADOS({ turmaId, runId: runIdFiltro || undefined }),
+    enabled: !!turmaId,
+  });
+
+  const { data: runsData } = useQuery({
+    queryKey: ["runs", turmaId],
+    queryFn: () => client.LISTAR_RUNS({ turmaId }),
+    enabled: !!turmaId,
+  });
+
+  const certificados = certificadosData?.certificados || [];
+  const runs = runsData?.runs || [];
+
+  const formatarData = (timestamp: string) => {
+    return new Date(timestamp).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const handleVerCertificado = (certificadoId: string) => {
+    window.open(`/certificado/${certificadoId}`, '_blank');
+  };
+
+  if (isLoadingCertificados) {
+    return (
+      <UnicornLoading 
+        message="Carregando certificados..." 
+        fullScreen={false}
+      />
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center">
+              <Award className="h-5 w-5 mr-2" />
+              Certificados Gerados
+            </CardTitle>
+            <CardDescription>
+              Visualize e gerencie os certificados gerados para esta turma
+            </CardDescription>
+          </div>
+          {certificados.length > 0 && (
+            <div className="flex items-center gap-2">
+              <select
+                value={runIdFiltro?.toString() || "todos"}
+                onChange={(e) => 
+                  setRunIdFiltro(e.target.value === "todos" ? null : parseInt(e.target.value))
+                }
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white hover:border-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+              >
+                <option value="todos">Todos os runs</option>
+                {runs.map((run: any) => (
+                  <option key={run.id} value={run.id.toString()}>
+                    {run.nome}
+                  </option>
+                ))}
+              </select>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setRunIdFiltro(null)}
+                className="text-red-600 border-red-300 hover:bg-red-50 hover:border-red-400"
+              >
+                <XCircle className="h-4 w-4 mr-1 stroke-red-600" />
+                Limpar
+              </Button>
+            </div>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        {certificados.length === 0 ? (
+          <div className="text-center py-12">
+            <Award className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Nenhum certificado gerado ainda
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Execute um run para gerar certificados automaticamente
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+              {certificados.map((certificado: any) => (
+                <Card key={certificado.id}>
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-semibold text-lg">{certificado.nome}</h3>
+                          <Badge className="bg-green-100 text-green-800">
+                            Gerado
+                          </Badge>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                          <div>
+                            <span className="font-medium">Email:</span>
+                            <p>{certificado.email || "N/A"}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium">Run:</span>
+                            <p>{runs.find((r: any) => r.id === certificado.runId)?.nome || "N/A"}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium">Gerado em:</span>
+                            <p>{formatarData(certificado.criadoEm)}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex space-x-2 ml-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleVerCertificado(certificado.id)}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Visualizar
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

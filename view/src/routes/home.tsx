@@ -96,8 +96,12 @@ function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
-              <FileText className="h-8 w-8 text-blue-600 mr-3" />
-              <h1 className="text-2xl font-bold text-gray-900">Decofier</h1>
+              <img 
+                src="https://assets.decocache.com/starting/4b0a748e-6470-4eed-acc8-38aeb478f555/certify_logo_nav.svg" 
+                alt="Certify Logo" 
+                className="h-8 w-auto mr-3" 
+              />
+              <h1 className="text-2xl font-bold text-gray-900">Certify</h1>
             </div>
           </div>
         </div>
@@ -197,7 +201,7 @@ function HomePage() {
               {turmas.map((turma: Turma) => (
                 <Card
                   key={turma.id}
-                  className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500"
+                  className="hover:shadow-lg transition-all duration-200"
                 >
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
@@ -221,11 +225,6 @@ function HomePage() {
                         <Calendar className="h-4 w-4 mr-2" />
                         Criada em {formatarData(turma.criadoEm)}
                       </div>
-                      {turma.descricao && (
-                        <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded-md">
-                          {turma.descricao}
-                        </div>
-                      )}
                     </div>
 
                     {/* Botões de ação */}
