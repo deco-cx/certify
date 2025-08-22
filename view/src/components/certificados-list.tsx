@@ -17,11 +17,13 @@ import {
 } from "./ui/select";
 import {
   useDeletarCertificado,
+  useDeletarCertificadosEmLote,
   useListarCertificados,
 } from "../hooks/useCertificados";
 import { useListarTemplates } from "../hooks/useTemplates";
 import { useListarCSVs } from "../hooks/useCSVs";
 import { useListarRuns } from "../hooks/useRuns";
+import { DeleteConfirmationDialog } from "./delete-confirmation-dialog";
 import { Download, ExternalLink, FileText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { UnicornLoading } from "./unicorn-loading";
@@ -32,6 +34,7 @@ interface CertificadosListProps {
 
 export function CertificadosList({ turmaId }: CertificadosListProps) {
   const [selectedRunId, setSelectedRunId] = useState<string>("all");
+  const [deletingCertificadoId, setDeletingCertificadoId] = useState<number | null>(null);
 
   // Convert selectedRunId to number or null for the hook
   const runIdForQuery = selectedRunId === "all"
@@ -44,16 +47,42 @@ export function CertificadosList({ turmaId }: CertificadosListProps) {
   const { data: csvsData } = useListarCSVs(turmaId);
   const { data: runsData } = useListarRuns(turmaId);
   const deletarCertificado = useDeletarCertificado();
+  const deletarCertificadosEmLote = useDeletarCertificadosEmLote();
 
   const handleDeleteCertificado = async (certificadoId: number) => {
-    if (confirm("Tem certeza que deseja deletar este certificado?")) {
-      try {
-        await deletarCertificado.mutateAsync({ id: certificadoId.toString() });
-        toast.success("Certificado deletado com sucesso!");
-      } catch (error) {
-        console.error("Erro ao deletar certificado:", error);
-        toast.error("Erro ao deletar certificado");
+    setDeletingCertificadoId(certificadoId);
+    try {
+      await deletarCertificado.mutateAsync({ id: certificadoId.toString() });
+      toast.success("Certificado deletado com sucesso!");
+      setDeletingCertificadoId(null);
+    } catch (error) {
+      console.error("Erro ao deletar certificado:", error);
+      toast.error("Erro ao deletar certificado");
+      setDeletingCertificadoId(null);
+    }
+  };
+
+  const handleBulkDeleteCertificados = async () => {
+    try {
+      let runId: number | null | undefined;
+      
+      if (selectedRunId === "all") {
+        runId = undefined; // Delete all certificates
+      } else if (selectedRunId === "none") {
+        runId = null; // Delete certificates without run
+      } else {
+        runId = parseInt(selectedRunId); // Delete certificates from specific run
       }
+
+      const result = await deletarCertificadosEmLote.mutateAsync({
+        turmaId,
+        runId,
+      });
+
+      toast.success((result as any).message);
+    } catch (error) {
+      console.error("Erro ao deletar certificados em lote:", error);
+      toast.error("Erro ao deletar certificados em lote");
     }
   };
 
@@ -147,25 +176,64 @@ export function CertificadosList({ turmaId }: CertificadosListProps) {
             </CardDescription>
           </div>
 
-          {/* Select de Runs */}
-          <div className="flex flex-col gap-2 min-w-[200px]">
-            <label className="text-sm font-medium text-gray-700">
-              Filtrar por Run:
-            </label>
-            <Select value={selectedRunId} onValueChange={setSelectedRunId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione uma run" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as Runs</SelectItem>
-                <SelectItem value="none">Sem Run</SelectItem>
-                {runsData?.runs?.map((run: any) => (
-                  <SelectItem key={run.id} value={run.id.toString()}>
-                    {run.nome} ({getStatusText(run.status)})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Select de Runs e Delete em Lote */}
+          <div className="flex flex-col gap-3 min-w-[200px]">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-gray-700">
+                Filtrar por Run:
+              </label>
+              <Select value={selectedRunId} onValueChange={setSelectedRunId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma run" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Runs</SelectItem>
+                  <SelectItem value="none">Sem Run</SelectItem>
+                  {runsData?.runs?.map((run: any) => (
+                    <SelectItem key={run.id} value={run.id.toString()}>
+                      {run.nome} ({getStatusText(run.status)})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Botão Delete em Lote */}
+            {certificadosData?.certificados && certificadosData.certificados.length > 0 && (
+              <DeleteConfirmationDialog
+                title="Excluir Certificados em Lote"
+                description={
+                  selectedRunId === "all"
+                    ? "Tem certeza que deseja excluir TODOS os certificados desta turma?"
+                    : selectedRunId === "none"
+                    ? "Tem certeza que deseja excluir todos os certificados sem run?"
+                    : `Tem certeza que deseja excluir todos os certificados da run selecionada?`
+                }
+                itemName={
+                  selectedRunId === "all"
+                    ? `${certificadosData.certificados.length} certificados (TODOS)`
+                    : selectedRunId === "none"
+                    ? `${certificadosData.certificados.length} certificados sem run`
+                    : `${certificadosData.certificados.length} certificados da run atual`
+                }
+                onConfirm={handleBulkDeleteCertificados}
+                isDeleting={deletarCertificadosEmLote.isPending}
+                triggerVariant="destructive"
+                triggerClassName="w-full"
+              >
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="w-full"
+                  disabled={deletarCertificadosEmLote.isPending}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {deletarCertificadosEmLote.isPending
+                    ? "Excluindo..."
+                    : `Excluir Todos (${certificadosData.certificados.length})`}
+                </Button>
+              </DeleteConfirmationDialog>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -294,16 +362,23 @@ export function CertificadosList({ turmaId }: CertificadosListProps) {
                               </a>
                             </Button>
                           )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              handleDeleteCertificado(certificado.id)}
-                            disabled={deletarCertificado.isPending}
+                          <DeleteConfirmationDialog
+                            title="Excluir Certificado"
+                            description="Tem certeza que deseja excluir este certificado?"
+                            itemName={`Certificado de ${certificado.nome}`}
+                            onConfirm={() => handleDeleteCertificado(certificado.id)}
+                            isDeleting={deletingCertificadoId === certificado.id}
+                            triggerVariant="outline"
                           >
-                            <Trash2 className="w-4 h-4 mr-1" />
-                            Deletar
-                          </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={deletingCertificadoId === certificado.id}
+                            >
+                              <Trash2 className="w-4 h-4 mr-1" />
+                              Deletar
+                            </Button>
+                          </DeleteConfirmationDialog>
                         </div>
                       </div>
 

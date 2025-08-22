@@ -438,6 +438,73 @@ export const createDeletarCertificadoTool = (env: Env) =>
     },
   });
 
+export const createDeletarCertificadosEmLoteTool = (env: Env) =>
+  createPrivateTool({
+    id: "DELETAR_CERTIFICADOS_EM_LOTE",
+    description: "Delete certificates in bulk by run filter",
+    inputSchema: z.object({
+      turmaId: z.number(),
+      runId: z.number().nullable().optional(), // null for all runs, undefined for no run filter
+    }),
+    outputSchema: z.object({
+      success: z.boolean(),
+      deletedCount: z.number(),
+      message: z.string(),
+    }),
+    execute: async ({ context }) => {
+      const db = await getDb(env);
+
+      try {
+        let query = db.delete(certificadosTable)
+          .where(eq(certificadosTable.turmaId, context.turmaId));
+
+        // Apply run filter
+        if (context.runId === null) {
+          // Delete certificates without a run (runId is null)
+          query = db.delete(certificadosTable)
+            .where(
+              and(
+                eq(certificadosTable.turmaId, context.turmaId),
+                isNull(certificadosTable.runId)
+              )
+            );
+        } else if (context.runId !== undefined) {
+          // Delete certificates from specific run
+          query = db.delete(certificadosTable)
+            .where(
+              and(
+                eq(certificadosTable.turmaId, context.turmaId),
+                eq(certificadosTable.runId, context.runId)
+              )
+            );
+        }
+        // If runId is undefined, delete all certificates from the turma
+
+        const deletedCertificates = await query.returning({ id: certificadosTable.id });
+
+        const deletedCount = deletedCertificates.length;
+        let message = `${deletedCount} certificado(s) deletado(s)`;
+        
+        if (context.runId === null) {
+          message += " (certificados sem run)";
+        } else if (context.runId !== undefined) {
+          message += ` da run ${context.runId}`;
+        } else {
+          message += " (todos os certificados da turma)";
+        }
+
+        return {
+          success: true,
+          deletedCount,
+          message,
+        };
+      } catch (error) {
+        console.error("Error bulk deleting certificates:", error);
+        throw new Error("Failed to bulk delete certificates");
+      }
+    },
+  });
+
 const getApi2pdfApiKey = (env: Env) => {
   const key = env.DECO_CHAT_REQUEST_CONTEXT.state?.api2pdfApiKey ||
     env.API2PDF_API_KEY;
@@ -611,6 +678,7 @@ export const certificadosTools = [
   createCriarCertificadoTool,
   createAtualizarCertificadoTool,
   createDeletarCertificadoTool,
+  createDeletarCertificadosEmLoteTool,
   createGerarPdfCertificadoTool,
   createGerarPngCertificadoTool,
 ];

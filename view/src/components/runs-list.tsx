@@ -12,9 +12,10 @@ import { useDeletarRun, useExecutarRun, useListarRuns } from "@/hooks/useRuns";
 import { useListarTemplates } from "../hooks/useTemplates";
 import { useListarCSVs } from "../hooks/useCSVs";
 import { CreateRunModal } from "./create-run-modal";
-import { Download, ExternalLink, Eye, Play, Trash2 } from "lucide-react";
+import { DeleteConfirmationDialog } from "./delete-confirmation-dialog";
+import { Download, Eye, Play, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { UnicornLoading } from "./unicorn-loading";
+
 
 interface RunsListProps {
   turmaId: number;
@@ -24,6 +25,7 @@ export function RunsList({ turmaId }: RunsListProps) {
   const [showCreateRun, setShowCreateRun] = useState(false);
   const [showRunDetalhes, setShowRunDetalhes] = useState(false);
   const [runSelecionada, setRunSelecionada] = useState<any>(null);
+  const [deletingRunId, setDeletingRunId] = useState<number | null>(null);
 
   const { data: runsData, isLoading: isLoadingRuns } = useListarRuns(turmaId);
   const { data: templatesData } = useListarTemplates(turmaId);
@@ -32,14 +34,15 @@ export function RunsList({ turmaId }: RunsListProps) {
   const executarRunMutation = useExecutarRun();
 
   const handleDeleteRun = async (runId: number) => {
-    if (confirm("Tem certeza que deseja deletar este run?")) {
-      try {
-        await deletarRun.mutateAsync({ id: runId });
-        toast.success("Run deletado com sucesso!");
-      } catch (error) {
-        console.error("Erro ao deletar run:", error);
-        toast.error("Erro ao deletar run");
-      }
+    setDeletingRunId(runId);
+    try {
+      await deletarRun.mutateAsync({ id: runId });
+      toast.success("Run deletado com sucesso!");
+      setDeletingRunId(null);
+    } catch (error) {
+      console.error("Erro ao deletar run:", error);
+      toast.error("Erro ao deletar run");
+      setDeletingRunId(null);
     }
   };
 
@@ -221,16 +224,23 @@ export function RunsList({ turmaId }: RunsListProps) {
                             Baixar
                           </Button>
                         )}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            handleDeleteRun(run.id)}
-                          disabled={deletarRun.isPending}
+                        <DeleteConfirmationDialog
+                          title="Excluir Run"
+                          description="Tem certeza que deseja excluir esta run de certificados?"
+                          itemName={run.nome}
+                          onConfirm={() => handleDeleteRun(run.id)}
+                          isDeleting={deletingRunId === run.id}
+                          triggerVariant="outline"
                         >
-                          <Trash2 className="w-4 h-4 mr-1" />
-                          Deletar
-                        </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={deletingRunId === run.id}
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Deletar
+                          </Button>
+                        </DeleteConfirmationDialog>
                       </div>
                     </div>
                   </CardContent>

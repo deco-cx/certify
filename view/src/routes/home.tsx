@@ -3,6 +3,7 @@ import {
   type RootRoute,
   useNavigate,
 } from "@tanstack/react-router";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Calendar, Eye, FileText, Plus, Trash2, Users } from "lucide-react";
+import { Calendar, Eye, FileText, Loader2, Plus, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -40,8 +41,8 @@ interface Turma {
 
 function HomePage() {
   const navigate = useNavigate();
-
   const queryClient = useQueryClient();
+  const [deletingTurmaId, setDeletingTurmaId] = useState<number | null>(null);
 
   // Buscar todas as turmas
   const { data: turmasData, isLoading } = useQuery({
@@ -57,14 +58,17 @@ function HomePage() {
     onSuccess: () => {
       toast.success("Turma excluída com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["turmas"] });
+      setDeletingTurmaId(null);
     },
     onError: (error) => {
       console.error("Erro ao excluir turma:", error);
       toast.error("Erro ao excluir turma. Tente novamente.");
+      setDeletingTurmaId(null);
     },
   });
 
   const handleExcluirTurma = async (turmaId: number) => {
+    setDeletingTurmaId(turmaId);
     deletarTurmaMutation.mutate(turmaId);
   };
 
@@ -245,8 +249,13 @@ function HomePage() {
                           <Button
                             variant="destructive"
                             size="sm"
+                            disabled={deletingTurmaId === turma.id}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            {deletingTurmaId === turma.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
@@ -259,12 +268,25 @@ function HomePage() {
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogCancel disabled={deletingTurmaId === turma.id}>
+                              Cancelar
+                            </AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => handleExcluirTurma(turma.id)}
                               className="bg-red-600 hover:bg-red-700"
+                              disabled={deletingTurmaId === turma.id}
                             >
-                              Excluir
+                              {deletingTurmaId === turma.id ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                  Excluindo...
+                                </>
+                              ) : (
+                                <>
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Excluir
+                                </>
+                              )}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>

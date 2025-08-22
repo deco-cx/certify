@@ -38,6 +38,7 @@ import { ViewTemplate } from "@/components/view-template";
 import { RunsList } from "@/components/runs-list";
 import { CertificadosList } from "@/components/certificados-list";
 import { CriarCampanhaModal } from "@/components/criar-campanha-modal";
+import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
 import { useListarCampanhasEmail, useEnviarCampanhaEmail, useDeletarCampanhaEmail } from "@/hooks/useEmails";
 import LoggedProvider from "@/components/logged-provider";
 import { UnicornLoading } from "@/components/unicorn-loading";
@@ -286,6 +287,7 @@ function TemplatesList({ turmaId, onShowUpload, onViewTemplate }: {
   onViewTemplate: (template: any) => void;
 }) {
   const queryClient = useQueryClient();
+  const [deletingTemplateId, setDeletingTemplateId] = useState<number | null>(null);
 
   // Buscar templates da turma
   const { data: templatesData, isLoading } = useQuery({
@@ -299,12 +301,23 @@ function TemplatesList({ turmaId, onShowUpload, onViewTemplate }: {
     onSuccess: () => {
       toast.success("Template excluído com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["templates", turmaId] });
+      setDeletingTemplateId(null);
     },
     onError: (error) => {
       console.error("Erro ao excluir template:", error);
       toast.error("Erro ao excluir template. Tente novamente.");
+      setDeletingTemplateId(null);
     },
   });
+
+  const handleDeleteTemplate = async (templateId: number) => {
+    setDeletingTemplateId(templateId);
+    try {
+      await deletarTemplateMutation.mutateAsync(templateId);
+    } catch (error) {
+      // Error handling is done in the mutation
+    }
+  };
 
   const templates = templatesData?.templates || [];
 
@@ -380,15 +393,13 @@ function TemplatesList({ turmaId, onShowUpload, onViewTemplate }: {
                   <Eye className="h-4 w-4 mr-2" />
                   Visualizar
                 </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() =>
-                    deletarTemplateMutation.mutate(template.id)}
-                  disabled={deletarTemplateMutation.isPending}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <DeleteConfirmationDialog
+                  title="Excluir Template"
+                  description="Tem certeza que deseja excluir este template HTML?"
+                  itemName={template.nome}
+                  onConfirm={() => handleDeleteTemplate(template.id)}
+                  isDeleting={deletingTemplateId === template.id}
+                />
               </div>
             </div>
           </Card>
@@ -403,6 +414,7 @@ function CSVsList(
   { turmaId, onShowUpload }: { turmaId: number; onShowUpload: () => void },
 ) {
   const queryClient = useQueryClient();
+  const [deletingCSVId, setDeletingCSVId] = useState<number | null>(null);
 
   // Buscar CSVs da turma
   const { data: csvsData, isLoading } = useQuery({
@@ -416,12 +428,23 @@ function CSVsList(
     onSuccess: () => {
       toast.success("CSV excluído com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["csvs", turmaId] });
+      setDeletingCSVId(null);
     },
     onError: (error) => {
       console.error("Erro ao excluir CSV:", error);
       toast.error("Erro ao excluir CSV. Tente novamente.");
+      setDeletingCSVId(null);
     },
   });
+
+  const handleDeleteCSV = async (csvId: number) => {
+    setDeletingCSVId(csvId);
+    try {
+      await deletarCSVMutation.mutateAsync(csvId);
+    } catch (error) {
+      // Error handling is done in the mutation
+    }
+  };
 
   const csvs = csvsData?.csvs || [];
 
@@ -502,14 +525,13 @@ function CSVsList(
                   <Eye className="h-4 w-4 mr-2" />
                   Visualizar
                 </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => deletarCSVMutation.mutate(csv.id)}
-                  disabled={deletarCSVMutation.isPending}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <DeleteConfirmationDialog
+                  title="Excluir CSV"
+                  description="Tem certeza que deseja excluir este arquivo CSV?"
+                  itemName={csv.nome}
+                  onConfirm={() => handleDeleteCSV(csv.id)}
+                  isDeleting={deletingCSVId === csv.id}
+                />
               </div>
             </div>
           </Card>
@@ -525,6 +547,7 @@ function CampanhasList({ turmaId, onShowCriar }: { turmaId: number; onShowCriar:
   const enviarCampanhaMutation = useEnviarCampanhaEmail();
   const deletarCampanhaMutation = useDeletarCampanhaEmail();
   const [campanhaEnviando, setCampanhaEnviando] = useState<number | null>(null);
+  const [deletingCampanhaId, setDeletingCampanhaId] = useState<number | null>(null);
 
   const campanhas = campanhasData?.campanhas || [];
 
@@ -566,17 +589,16 @@ function CampanhasList({ turmaId, onShowCriar }: { turmaId: number; onShowCriar:
     }
   };
 
-  const handleDeletarCampanha = async (campanhaId: number, nomeCampanha: string) => {
-    if (!confirm(`Tem certeza que deseja deletar a campanha "${nomeCampanha}"? Esta ação não pode ser desfeita.`)) {
-      return;
-    }
-
+  const handleDeletarCampanha = async (campanhaId: number) => {
+    setDeletingCampanhaId(campanhaId);
     try {
       const result = await deletarCampanhaMutation.mutateAsync(campanhaId);
       toast.success(result.message);
+      setDeletingCampanhaId(null);
     } catch (error) {
       console.error("Erro ao deletar campanha:", error);
       toast.error("Erro ao deletar campanha. Tente novamente.");
+      setDeletingCampanhaId(null);
     }
   };
 
@@ -691,14 +713,13 @@ function CampanhasList({ turmaId, onShowCriar }: { turmaId: number; onShowCriar:
                       </div>
                     )}
                     {campanha.status !== "sending" && (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeletarCampanha(campanha.id, campanha.nome)}
-                        disabled={deletarCampanhaMutation.isPending}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <DeleteConfirmationDialog
+                        title="Excluir Campanha de Email"
+                        description="Tem certeza que deseja excluir esta campanha de email?"
+                        itemName={campanha.nome}
+                        onConfirm={() => handleDeletarCampanha(campanha.id)}
+                        isDeleting={deletingCampanhaId === campanha.id}
+                      />
                     )}
                   </div>
                 </div>

@@ -116,7 +116,7 @@ export const logsEmailTable = sqliteTable(tableName("logs_email"), {
   campanhaId: integer("campanha_id").notNull().references(() =>
     campanhasEmailTable.id
   ),
-  certificadoId: integer("certificado_id").notNull().references(() =>
+  certificadoId: text("certificado_id").notNull().references(() =>
     certificadosTable.id
   ),
   emailDestinatario: text("email_destinatario").notNull(),

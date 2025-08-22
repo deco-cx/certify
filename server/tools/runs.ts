@@ -13,7 +13,9 @@ import { eq } from "drizzle-orm";
 import { getDb } from "../db.ts";
 import {
   certificadosTable,
+  campanhasEmailTable,
   csvsTable,
+  logsEmailTable,
   runsTable,
   templatesTable,
   turmasTable,
@@ -341,13 +343,15 @@ export const createAtualizarRunTool = (env: Env) =>
 export const createDeletarRunTool = (env: Env) =>
   createPrivateTool({
     id: "DELETAR_RUN",
-    description: "Delete a run and all associated certificates",
+    description: "Delete a run and all associated certificates and email campaigns",
     inputSchema: z.object({
       id: z.number(),
     }),
     outputSchema: z.object({
       success: z.boolean(),
       deletedId: z.number(),
+      deletedCertificates: z.number(),
+      deletedCampaigns: z.number(),
     }),
     execute: async ({ context }) => {
       const db = await getDb(env);
@@ -363,16 +367,66 @@ export const createDeletarRunTool = (env: Env) =>
           throw new Error("Run not found");
         }
 
-        // Delete run (certificates will be handled by foreign key constraints)
-        await db.delete(runsTable).where(eq(runsTable.id, context.id));
+        console.log(`Starting delete process for run ${context.id}`);
+
+        // Count existing related data before deleting
+        const campaigns = await db.select({ id: campanhasEmailTable.id })
+          .from(campanhasEmailTable)
+          .where(eq(campanhasEmailTable.runId, context.id));
+        
+        const certificates = await db.select({ id: certificadosTable.id })
+          .from(certificadosTable)
+          .where(eq(certificadosTable.runId, context.id));
+
+        console.log(`Found ${campaigns.length} campaigns and ${certificates.length} certificates to delete`);
+
+        // Start with a simple approach - no transaction first to identify issue
+        try {
+          // For each campaign, delete related logs first
+          for (const campaign of campaigns) {
+            try {
+              await db.delete(logsEmailTable)
+                .where(eq(logsEmailTable.campanhaId, campaign.id));
+              console.log(`Deleted logs for campaign ${campaign.id}`);
+            } catch (logError) {
+              console.log(`No logs found for campaign ${campaign.id} or already deleted`);
+            }
+          }
+
+          // Delete email campaigns
+          if (campaigns.length > 0) {
+            await db.delete(campanhasEmailTable)
+              .where(eq(campanhasEmailTable.runId, context.id));
+            console.log(`Deleted ${campaigns.length} campaigns`);
+          }
+
+          // Delete certificates 
+          if (certificates.length > 0) {
+            await db.delete(certificadosTable)
+              .where(eq(certificadosTable.runId, context.id));
+            console.log(`Deleted ${certificates.length} certificates`);
+          }
+
+          // Finally, delete the run itself
+          await db.delete(runsTable)
+            .where(eq(runsTable.id, context.id));
+          
+          console.log(`Successfully deleted run ${context.id}`);
+
+        } catch (deleteError) {
+          console.error(`Error during delete operations:`, deleteError);
+          throw deleteError;
+        }
 
         return {
           success: true,
           deletedId: context.id,
+          deletedCertificates: certificates.length,
+          deletedCampaigns: campaigns.length,
         };
       } catch (error) {
         console.error("Error deleting run:", error);
-        throw new Error("Failed to delete run");
+        throw new Error(`Failed to delete run: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     },
   });

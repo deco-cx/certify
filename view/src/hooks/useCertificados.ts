@@ -120,3 +120,20 @@ export const useGerarPngCertificado = () => {
     mutationFn: (data: { id: string }) => client.GERAR_PNG_CERTIFICADO(data),
   });
 };
+
+// Hook para deletar certificados em lote
+export const useDeletarCertificadosEmLote = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: { turmaId: number; runId?: number | null }) => 
+      client.DELETAR_CERTIFICADOS_EM_LOTE(data),
+
+    onSuccess: (_, variables) => {
+      // Invalidate certificates lists for this turma
+      queryClient.invalidateQueries({
+        queryKey: ["certificados", variables.turmaId],
+      });
+    },
+  });
+};

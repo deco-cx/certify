@@ -15,6 +15,13 @@
       "when": 1755727051227,
       "tag": "0001_cute_shinobi_shaw",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1755821431097,
+      "tag": "0002_rapid_loa",
+      "breakpoints": true
     }
   ]
 }
