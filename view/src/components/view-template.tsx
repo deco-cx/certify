@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Check, Code, Copy, Eye, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -9,7 +10,7 @@ interface ViewTemplateProps {
   template: {
     id: number;
     nome: string;
-    arquivoUrl: string;
+    html: string; // Campo correto do servidor
     campos: string | null;
   };
   onClose: () => void;
@@ -17,25 +18,10 @@ interface ViewTemplateProps {
 
 export function ViewTemplate({ template, onClose }: ViewTemplateProps) {
   const [copied, setCopied] = useState(false);
+  const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('landscape');
 
-  // Extrair o HTML do arquivoUrl (data:text/html;base64,...)
-  const getHtmlContent = () => {
-    try {
-      if (template.arquivoUrl.startsWith("data:text/html;base64,")) {
-        const base64 = template.arquivoUrl.replace(
-          "data:text/html;base64,",
-          "",
-        );
-        return decodeURIComponent(escape(atob(base64)));
-      }
-      return template.arquivoUrl;
-    } catch (error) {
-      console.error("Erro ao decodificar HTML:", error);
-      return "<p>Erro ao carregar template</p>";
-    }
-  };
-
-  const htmlContent = getHtmlContent();
+  // Usar o HTML diretamente do template
+  const htmlContent = template.html;
 
   // Detectar placeholders no HTML
   const detectPlaceholders = (html: string) => {
@@ -104,6 +90,7 @@ export function ViewTemplate({ template, onClose }: ViewTemplateProps) {
       "modulo": "Módulo 3",
       "frequencia": "90%",
       "presenca": "18 de 20 aulas",
+      "name": "João Silva", // Adicionado para o campo "name" que aparece no print
     };
 
     return examples[placeholder] || `[${placeholder}]`;
@@ -122,7 +109,7 @@ export function ViewTemplate({ template, onClose }: ViewTemplateProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-6xl max-h-[90vh] overflow-hidden">
+      <Card className="w-full max-w-7xl max-h-[95vh] overflow-hidden">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle className="flex items-center gap-2">
             <Eye className="h-5 w-5" />
@@ -145,7 +132,7 @@ export function ViewTemplate({ template, onClose }: ViewTemplateProps) {
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 overflow-y-auto" style={{ maxHeight: 'calc(95vh - 120px)' }}>
           {/* Informações do template */}
           <div className="bg-gray-50 p-4 rounded-lg">
             <h4 className="font-medium text-gray-900 mb-2">
@@ -178,7 +165,7 @@ export function ViewTemplate({ template, onClose }: ViewTemplateProps) {
             </div>
           </div>
 
-          {/* Tabs para Código e Preview */}
+          {/* Tabs para Preview e Código */}
           <Tabs defaultValue="preview" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="preview" className="flex items-center gap-2">
@@ -192,12 +179,48 @@ export function ViewTemplate({ template, onClose }: ViewTemplateProps) {
             </TabsList>
             
             <TabsContent value="preview" className="space-y-4">
-              <div className="border rounded-lg p-4 bg-gray-50">
-                <div className="text-sm text-gray-600 mb-2">Preview com dados de exemplo:</div>
+              <div className="border rounded-lg bg-gray-50">
+                <div className="flex items-center justify-between p-4 border-b bg-white rounded-t-lg">
+                  <div className="text-sm text-gray-600">Preview com dados de exemplo:</div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">Orientação:</span>
+                    <Select value={orientation} onValueChange={(value) => setOrientation(value as 'portrait' | 'landscape')}>
+                      <SelectTrigger className="w-32 h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="portrait">Retrato</SelectItem>
+                        <SelectItem value="landscape">Paisagem</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
                 <div 
-                  className="bg-white border rounded p-4 max-h-96 overflow-y-auto"
-                  dangerouslySetInnerHTML={{ __html: getPreviewHtml() }}
-                />
+                  className="bg-white overflow-hidden"
+                  style={{
+                    width: '100%',
+                    position: 'relative',
+                    ...(orientation === 'landscape' && { 
+                      maxWidth: '1200px',
+                      aspectRatio: '16/9'
+                    }),
+                    ...(orientation === 'portrait' && { 
+                      maxWidth: '800px',
+                      aspectRatio: '3/4'
+                    })
+                  }}
+                >
+                  <div
+                    className="w-full h-full"
+                    style={{
+                      padding: '20px',
+                      overflow: 'auto',
+                      boxSizing: 'border-box'
+                    }}
+                    dangerouslySetInnerHTML={{ __html: getPreviewHtml() }}
+                  />
+                </div>
               </div>
             </TabsContent>
             

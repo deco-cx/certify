@@ -63,11 +63,33 @@ export function UploadCSV({ turmaId, onClose }: UploadCSVProps) {
     setIsUploading(true);
 
     try {
+      // Converter CSV para JSON
+      const linhas = csvContent.trim().split("\n");
+      const dadosJSON = [];
+      
+      // Pular a primeira linha (cabeçalho) e processar os dados
+      for (let i = 1; i < linhas.length; i++) {
+        const linha = linhas[i].trim();
+        if (linha) {
+          const valores = linha.split(",").map(val => val.trim().replace(/"/g, ""));
+          const registro: any = {};
+          
+          colunas.forEach((coluna, index) => {
+            registro[coluna] = valores[index] || "";
+          });
+          
+          dadosJSON.push(registro);
+        }
+      }
+
+      console.log("Dados convertidos para JSON:", dadosJSON);
+      console.log("Colunas:", colunas);
+
       await criarCSVMutation.mutateAsync({
         turmaId,
         nome: nome.trim(),
-        dados: csvContent,
-        colunas: colunas.join(", "),
+        dados: JSON.stringify(dadosJSON),
+        colunas: JSON.stringify(colunas),
       });
     } catch (error) {
       console.error("Erro no upload:", error);

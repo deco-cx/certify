@@ -303,6 +303,102 @@ export const createDeletarCSVTool = (env: Env) =>
     },
   });
 
+export const createMigrarCSVAntigoTool = (env: Env) =>
+  createPrivateTool({
+    id: "MIGRAR_CSV_ANTIGO",
+    description: "Migrate old CSV format (string) to new JSON format",
+    inputSchema: z.object({
+      csvId: z.number(),
+    }),
+    outputSchema: z.object({
+      success: z.boolean(),
+      message: z.string(),
+      dadosConvertidos: z.number(),
+      colunasConvertidas: z.number(),
+    }),
+    execute: async ({ context }) => {
+      const db = await getDb(env);
+
+      try {
+        // Buscar CSV
+        const csvs = await db.select()
+          .from(csvsTable)
+          .where(eq(csvsTable.id, context.csvId))
+          .limit(1);
+
+        if (csvs.length === 0) {
+          throw new Error("CSV not found");
+        }
+
+        const csv = csvs[0];
+        
+        // Verificar se já está no formato novo
+        try {
+          const dadosTeste = JSON.parse(csv.dados);
+          const colunasTeste = JSON.parse(csv.colunas);
+          if (Array.isArray(dadosTeste) && Array.isArray(colunasTeste)) {
+            return {
+              success: true,
+              message: "CSV já está no formato novo",
+              dadosConvertidos: dadosTeste.length,
+              colunasConvertidas: colunasTeste.length,
+            };
+          }
+        } catch {
+          // CSV está no formato antigo, continuar com a migração
+        }
+
+        // Parsear colunas (pode ser string simples ou JSON)
+        let colunasArray: string[];
+        try {
+          colunasArray = JSON.parse(csv.colunas);
+        } catch {
+          // Se não for JSON, tentar como string separada por vírgulas
+          colunasArray = csv.colunas.split(",").map(col => col.trim());
+        }
+
+        // Parsear dados CSV
+        const linhas = csv.dados.trim().split("\n");
+        const dadosArray = [];
+        
+        // Pular a primeira linha se for cabeçalho
+        const startIndex = linhas[0].includes(colunasArray[0]) ? 1 : 0;
+        
+        for (let i = startIndex; i < linhas.length; i++) {
+          const linha = linhas[i].trim();
+          if (linha) {
+            const valores = linha.split(",").map(val => val.trim().replace(/"/g, ""));
+            const registro: any = {};
+            
+            colunasArray.forEach((coluna, index) => {
+              registro[coluna] = valores[index] || "";
+            });
+            
+            dadosArray.push(registro);
+          }
+        }
+
+        // Atualizar CSV com novo formato
+        await db.update(csvsTable)
+          .set({
+            dados: JSON.stringify(dadosArray),
+            colunas: JSON.stringify(colunasArray),
+          })
+          .where(eq(csvsTable.id, context.csvId));
+
+        return {
+          success: true,
+          message: "CSV migrado com sucesso para o novo formato",
+          dadosConvertidos: dadosArray.length,
+          colunasConvertidas: colunasArray.length,
+        };
+      } catch (error) {
+        console.error("Error migrating CSV:", error);
+        throw new Error("Failed to migrate CSV");
+      }
+    },
+  });
+
 // Export all CSVs-related tools
 export const csvsTools = [
   createListarCSVsTool,
@@ -310,4 +406,5 @@ export const csvsTools = [
   createCriarCSVTool,
   createAtualizarCSVTool,
   createDeletarCSVTool,
+  createMigrarCSVAntigoTool,
 ];

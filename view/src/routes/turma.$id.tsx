@@ -37,6 +37,7 @@ import { client } from "@/lib/rpc";
 import { UploadTemplate } from "@/components/upload-template";
 import { UploadCSV } from "@/components/upload-csv";
 import { ViewTemplate } from "../components/view-template";
+import { ViewCSV } from "../components/view-csv";
 import { RunsList } from "@/components/runs-list";
 // import { CertificadosList } from "@/components/certificados-list";
 import { CriarCampanhaModal } from "@/components/criar-campanha-modal";
@@ -45,13 +46,27 @@ import { useListarCampanhasEmail, useEnviarCampanhaEmail, useDeletarCampanhaEmai
 import LoggedProvider from "@/components/logged-provider";
 import { UnicornLoading } from "@/components/unicorn-loading";
 
+// Interface para o tipo Template
+interface Template {
+  id: number;
+  turmaId: number;
+  nome: string;
+  html: string;
+  tipo: string | null;
+  campos: string | null;
+  criadoEm: string;
+  atualizadoEm: string;
+}
+
 function TurmaDetalhesPage() {
   const navigate = useNavigate();
   const { id } = useParams({ from: "/turma/$id" });
   const [showUploadTemplate, setShowUploadTemplate] = useState(false);
   const [showUploadCSV, setShowUploadCSV] = useState(false);
   const [showViewTemplate, setShowViewTemplate] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+  const [showViewCSV, setShowViewCSV] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+  const [selectedCSV, setSelectedCSV] = useState<any>(null);
   const [showCriarCampanha, setShowCriarCampanha] = useState(false);
 
   // Buscar dados da turma
@@ -256,6 +271,10 @@ function TurmaDetalhesPage() {
                 <CSVsList
                   turmaId={turma.id}
                   onShowUpload={() => setShowUploadCSV(true)}
+                  onViewCSV={(csv) => {
+                    setSelectedCSV(csv);
+                    setShowViewCSV(true);
+                  }}
                 />
               </CardContent>
             </Card>
@@ -305,6 +324,17 @@ function TurmaDetalhesPage() {
         />
       )}
 
+      {/* Modal de Visualização de CSV */}
+      {showViewCSV && selectedCSV && (
+        <ViewCSV
+          csv={selectedCSV}
+          onClose={() => {
+            setShowViewCSV(false);
+            setSelectedCSV(null);
+          }}
+        />
+      )}
+
       {/* Modal de Criar Campanha */}
       {showCriarCampanha && (
         <CriarCampanhaModal
@@ -320,7 +350,7 @@ function TurmaDetalhesPage() {
 function TemplatesList({ turmaId, onShowUpload, onViewTemplate }: {
   turmaId: number;
   onShowUpload: () => void;
-  onViewTemplate: (template: any) => void;
+  onViewTemplate: (template: Template) => void;
 }) {
   const queryClient = useQueryClient();
   const [deletingTemplateId, setDeletingTemplateId] = useState<number | null>(null);
@@ -405,7 +435,7 @@ function TemplatesList({ turmaId, onShowUpload, onViewTemplate }: {
       </div>
 
       <div className="grid gap-4">
-        {templates.map((template: any) => (
+        {templates.map((template: Template) => (
           <Card key={template.id} className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex-1">
@@ -447,7 +477,11 @@ function TemplatesList({ turmaId, onShowUpload, onViewTemplate }: {
 
 // Componente para listar CSVs
 function CSVsList(
-  { turmaId, onShowUpload }: { turmaId: number; onShowUpload: () => void },
+  { turmaId, onShowUpload, onViewCSV }: { 
+    turmaId: number; 
+    onShowUpload: () => void;
+    onViewCSV: (csv: any) => void;
+  },
 ) {
   const queryClient = useQueryClient();
   const [deletingCSVId, setDeletingCSVId] = useState<number | null>(null);
@@ -556,7 +590,7 @@ function CSVsList(
                   variant="outline"
                   size="sm"
                   onClick={() =>
-                    toast.info("Funcionalidade em desenvolvimento")}
+                    onViewCSV(csv)}
                 >
                   <Eye className="h-4 w-4 mr-2" />
                   Visualizar

@@ -29,8 +29,7 @@ export const useCriarTemplate = () => {
     mutationFn: (data: {
       turmaId: number;
       nome: string;
-      arquivoUrl: string;
-      arquivoId?: string;
+      html: string; // Campo correto do servidor
       tipo?: string;
       campos?: string;
     }) => client.CRIAR_TEMPLATE(data),
@@ -55,8 +54,7 @@ export const useAtualizarTemplate = () => {
     mutationFn: (data: {
       id: number;
       nome?: string;
-      arquivoUrl?: string;
-      arquivoId?: string;
+      html?: string; // Campo correto do servidor
       tipo?: string;
       campos?: string;
     }) => client.ATUALIZAR_TEMPLATE(data),
