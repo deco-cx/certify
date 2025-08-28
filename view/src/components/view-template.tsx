@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Check, Code, Copy, Eye, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -18,7 +17,6 @@ interface ViewTemplateProps {
 
 export function ViewTemplate({ template, onClose }: ViewTemplateProps) {
   const [copied, setCopied] = useState(false);
-  const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('landscape');
 
   // Usar o HTML diretamente do template
   const htmlContent = template.html;
@@ -182,44 +180,31 @@ export function ViewTemplate({ template, onClose }: ViewTemplateProps) {
               <div className="border rounded-lg bg-gray-50">
                 <div className="flex items-center justify-between p-4 border-b bg-white rounded-t-lg">
                   <div className="text-sm text-gray-600">Preview com dados de exemplo:</div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500">Orientação:</span>
-                    <Select value={orientation} onValueChange={(value) => setOrientation(value as 'portrait' | 'landscape')}>
-                      <SelectTrigger className="w-32 h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="portrait">Retrato</SelectItem>
-                        <SelectItem value="landscape">Paisagem</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                 </div>
                 
                 <div 
-                  className="bg-white overflow-hidden"
+                  className="bg-white overflow-hidden flex-1"
                   style={{
                     width: '100%',
+                    height: '100%',
                     position: 'relative',
-                    ...(orientation === 'landscape' && { 
-                      maxWidth: '1200px',
-                      aspectRatio: '16/9'
-                    }),
-                    ...(orientation === 'portrait' && { 
-                      maxWidth: '800px',
-                      aspectRatio: '3/4'
-                    })
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '20px'
                   }}
                 >
-                  <div
-                    className="w-full h-full"
-                    style={{
-                      padding: '20px',
-                      overflow: 'auto',
-                      boxSizing: 'border-box'
-                    }}
-                    dangerouslySetInnerHTML={{ __html: getPreviewHtml() }}
-                  />
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div
+                      className="w-full h-full flex items-center justify-center"
+                      style={{
+                        maxWidth: '1200px',
+                        width: '95%',
+                        aspectRatio: '1.414'
+                      }}
+                      dangerouslySetInnerHTML={{ __html: getPreviewHtml() }}
+                    />
+                  </div>
                 </div>
               </div>
             </TabsContent>

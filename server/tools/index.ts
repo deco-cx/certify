@@ -7,27 +7,30 @@
  */
 import { turmasTools } from "./todos.ts";
 import { userTools } from "./user.ts";
-import { templatesTools } from "./templates.ts";
-import { csvsTools } from "./csvs.ts";
-import { runsTools } from "./runs.ts";
 import { certificadosTools } from "./certificados.ts";
+import { csvsTools } from "./csvs.ts";
 import { emailsTools } from "./emails.ts";
+import { runsTools } from "./runs.ts";
+import { templatesTools } from "./templates.ts";
+import { aiTools } from "./ai.ts";
 
 export const tools = [
   ...turmasTools,
   ...userTools,
-  ...templatesTools,
-  ...csvsTools,
-  ...runsTools,
   ...certificadosTools,
+  ...csvsTools,
   ...emailsTools,
+  ...runsTools,
+  ...templatesTools,
+  ...aiTools,
 ];
 
 // Re-export for direct access
 export { turmasTools } from "./todos.ts";
 export { userTools } from "./user.ts";
-export { templatesTools } from "./templates.ts";
-export { csvsTools } from "./csvs.ts";
-export { runsTools } from "./runs.ts";
 export { certificadosTools } from "./certificados.ts";
+export { csvsTools } from "./csvs.ts";
 export { emailsTools } from "./emails.ts";
+export { runsTools } from "./runs.ts";
+export { templatesTools } from "./templates.ts";
+export { aiTools } from "./ai.ts";

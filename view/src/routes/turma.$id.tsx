@@ -30,6 +30,7 @@ import {
   Database,
   Play,
   Award,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -45,6 +46,7 @@ import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialo
 import { useListarCampanhasEmail, useEnviarCampanhaEmail, useDeletarCampanhaEmail } from "@/hooks/useEmails";
 import LoggedProvider from "@/components/logged-provider";
 import { UnicornLoading } from "@/components/unicorn-loading";
+import { CriarCertificadoModal } from "@/components/criar-certificado-modal";
 
 // Interface para o tipo Template
 interface Template {
@@ -65,6 +67,7 @@ function TurmaDetalhesPage() {
   const [showUploadCSV, setShowUploadCSV] = useState(false);
   const [showViewTemplate, setShowViewTemplate] = useState(false);
   const [showViewCSV, setShowViewCSV] = useState(false);
+  const [showCriarCertificado, setShowCriarCertificado] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [selectedCSV, setSelectedCSV] = useState<any>(null);
   const [showCriarCampanha, setShowCriarCampanha] = useState(false);
@@ -246,6 +249,7 @@ function TurmaDetalhesPage() {
                 <TemplatesList
                   turmaId={turma.id}
                   onShowUpload={() => setShowUploadTemplate(true)}
+                  onShowCriar={() => setShowCriarCertificado(true)}
                   onViewTemplate={(template) => {
                     setSelectedTemplate(template);
                     setShowViewTemplate(true);
@@ -335,6 +339,14 @@ function TurmaDetalhesPage() {
         />
       )}
 
+      {/* Modal de Criação de Certificado */}
+      {showCriarCertificado && (
+        <CriarCertificadoModal
+          turmaId={turma.id}
+          onClose={() => setShowCriarCertificado(false)}
+        />
+      )}
+
       {/* Modal de Criar Campanha */}
       {showCriarCampanha && (
         <CriarCampanhaModal
@@ -347,11 +359,14 @@ function TurmaDetalhesPage() {
 }
 
 // Componente para listar templates
-function TemplatesList({ turmaId, onShowUpload, onViewTemplate }: {
-  turmaId: number;
-  onShowUpload: () => void;
-  onViewTemplate: (template: Template) => void;
-}) {
+function TemplatesList(
+  { turmaId, onShowUpload, onShowCriar, onViewTemplate }: { 
+    turmaId: number; 
+    onShowUpload: () => void;
+    onShowCriar: () => void;
+    onViewTemplate: (template: Template) => void;
+  },
+) {
   const queryClient = useQueryClient();
   const [deletingTemplateId, setDeletingTemplateId] = useState<number | null>(null);
 
@@ -427,11 +442,17 @@ function TemplatesList({ turmaId, onShowUpload, onViewTemplate }: {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h4 className="text-lg font-medium">Templates Disponíveis</h4>
-        <Button onClick={onShowUpload}>
-          <Upload className="h-4 w-4 mr-2" />
-          Novo Template
-        </Button>
+        <h4 className="text-lg font-medium">Templates HTML Disponíveis</h4>
+        <div className="flex gap-2">
+          <Button onClick={onShowCriar} variant="outline">
+            <MessageSquare className="h-4 w-4 mr-2" />
+            Criar Certificado
+          </Button>
+          <Button onClick={onShowUpload}>
+            <Upload className="h-4 w-4 mr-2" />
+            Upload Template
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4">
