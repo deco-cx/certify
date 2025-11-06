@@ -7,7 +7,8 @@
     "deploy": "wrangler build && deco deploy ./dist",
     "gen": "deco gen --output=deco.gen.ts",
     "gen:self": "deco gen --self=$DECO_SELF_URL --output=deco.gen.ts",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "login": "deco login"
   },
   "dependencies": {
     "@deco/workers-runtime": "npm:@jsr/deco__workers-runtime@0.11.1",
@@ -17,7 +18,7 @@
     "zod": "^3.24.3"
   },
   "devDependencies": {
-    "deco-cli": "^0.16.0",
+    "deco-cli": "^0.23.3",
     "drizzle-kit": "^0.31.4",
     "wrangler": "^4.28.0"
   }
