@@ -84,17 +84,47 @@ export const createCriarRunTool = (env: Env) =>
         }
 
         const csv = csvs[0];
-        // As colunas são salvas como string separada por vírgulas, não JSON
-        const colunas = csv.colunas.split(",").map((col) => col.trim());
-
-        if (!colunas.includes(context.nameColumn)) {
-          throw new Error(`Column '${context.nameColumn}' not found in CSV`);
+        
+        // Parse colunas - pode ser JSON array ou string separada por vírgulas
+        let colunas: string[];
+        try {
+          const colunasParsed = JSON.parse(csv.colunas);
+          if (Array.isArray(colunasParsed)) {
+            colunas = colunasParsed;
+          } else {
+            throw new Error("Colunas não é um array JSON válido");
+          }
+        } catch {
+          // Formato antigo: string separada por vírgulas
+          colunas = csv.colunas.split(",").map((col) => col.trim());
         }
 
-        // Count total students (lines in CSV minus header)
-        // Os dados são salvos como string CSV, não JSON
-        const linhas = csv.dados.trim().split("\n");
-        const totalAlunos = linhas.length - 1; // Subtract header row
+        // Limpar nameColumn e emailColumn caso venham mal formatados
+        const nameColumnClean = context.nameColumn.trim().replace(/^\["|"\]$/g, "").replace(/^"|"$/g, "");
+        const emailColumnClean = context.emailColumn ? context.emailColumn.trim().replace(/^\["|"\]$/g, "").replace(/^"|"$/g, "") : null;
+
+        if (!colunas.includes(nameColumnClean)) {
+          throw new Error(`Column '${nameColumnClean}' not found in CSV. Available columns: ${colunas.join(", ")}`);
+        }
+        
+        if (emailColumnClean && !colunas.includes(emailColumnClean)) {
+          throw new Error(`Column '${emailColumnClean}' not found in CSV. Available columns: ${colunas.join(", ")}`);
+        }
+
+        // Count total students - pode ser JSON array ou CSV string
+        let totalAlunos: number;
+        try {
+          const dadosParsed = JSON.parse(csv.dados);
+          if (Array.isArray(dadosParsed)) {
+            totalAlunos = dadosParsed.length;
+          } else {
+            throw new Error("Dados não é um array JSON válido");
+          }
+        } catch {
+          // Formato antigo: string CSV com quebras de linha
+          const linhas = csv.dados.trim().split("\n");
+          totalAlunos = linhas.length - 1; // Subtract header row
+        }
 
         const agora = new Date();
         const newRun = await db.insert(runsTable).values({
@@ -102,8 +132,8 @@ export const createCriarRunTool = (env: Env) =>
           nome: context.nome,
           templateId: context.templateId,
           csvId: context.csvId,
-          nameColumn: context.nameColumn,
-          emailColumn: context.emailColumn,
+          nameColumn: nameColumnClean,
+          emailColumn: emailColumnClean,
           status: "pending",
           totalAlunos,
           certificadosGerados: 0,
@@ -496,9 +526,49 @@ export const createExecutarRunTool = (env: Env) =>
           })
           .where(eq(runsTable.id, context.runId));
 
-        // Processar cada linha do CSV
-        const linhas = csv.dados.trim().split("\n");
-        const colunas = csv.colunas.split(",").map((col) => col.trim());
+        // Parse colunas - pode ser JSON array ou string separada por vírgulas
+        let colunas: string[];
+        try {
+          const colunasParsed = JSON.parse(csv.colunas);
+          if (Array.isArray(colunasParsed)) {
+            colunas = colunasParsed;
+          } else {
+            throw new Error("Colunas não é um array JSON válido");
+          }
+        } catch {
+          // Formato antigo: string separada por vírgulas
+          colunas = csv.colunas.split(",").map((col) => col.trim());
+        }
+
+        // Parse dados - pode ser JSON array ou CSV string
+        let dadosArray: any[];
+        try {
+          const dadosParsed = JSON.parse(csv.dados);
+          if (Array.isArray(dadosParsed)) {
+            dadosArray = dadosParsed;
+          } else {
+            throw new Error("Dados não é um array JSON válido");
+          }
+        } catch {
+          // Formato antigo: string CSV com quebras de linha
+          const linhas = csv.dados.trim().split("\n");
+          dadosArray = [];
+          
+          // Pular cabeçalho e processar linhas
+          for (let i = 1; i < linhas.length; i++) {
+            const linha = linhas[i].trim();
+            if (!linha) continue;
+            
+            const valores = linha.split(",").map((val) =>
+              val.trim().replace(/"/g, "")
+            );
+            const registro: any = {};
+            colunas.forEach((coluna, index) => {
+              registro[coluna] = valores[index] || "";
+            });
+            dadosArray.push(registro);
+          }
+        }
 
         // Encontrar índice da coluna do nome
         const nameColumnIndex = colunas.indexOf(run.nameColumn);
@@ -507,24 +577,25 @@ export const createExecutarRunTool = (env: Env) =>
           : -1;
         if (nameColumnIndex === -1) {
           throw new Error(`Column '${run.nameColumn}' not found in CSV`);
-        } else if (emailColumnIndex === -1) {
+        }
+        if (run.emailColumn && emailColumnIndex === -1) {
           throw new Error(`Column '${run.emailColumn}' not found in CSV`);
         }
 
         let certificadosGerados = 0;
 
-        // Processar cada linha (pular cabeçalho)
-        for (let i = 1; i < linhas.length; i++) {
-          const linha = linhas[i];
-          if (!linha.trim()) continue;
-
-          const valores = linha.split(",").map((val) =>
-            val.trim().replace(/"/g, "")
-          );
-          const nome = valores[nameColumnIndex];
-          const email = valores[emailColumnIndex];
+        // Processar cada registro
+        for (let i = 0; i < dadosArray.length; i++) {
+          const registro = dadosArray[i];
+          
+          // Extrair nome e email do registro
+          const nome = registro[run.nameColumn] || registro[colunas[nameColumnIndex]] || "";
+          const email = run.emailColumn 
+            ? (registro[run.emailColumn] || registro[colunas[emailColumnIndex]] || "")
+            : "";
+          
           if (!nome || nome === "") continue;
-          if (!email || email === "") continue;
+          if (run.emailColumn && (!email || email === "")) continue;
 
           try {
             // Substituir placeholders pelos dados reais
@@ -533,11 +604,11 @@ export const createExecutarRunTool = (env: Env) =>
               .replace(/\{\{nome\}\}/g, nome);
 
             // Substituir outros campos do CSV se existirem
-            colunas.forEach((coluna, index) => {
-              const valor = valores[index] || "";
+            colunas.forEach((coluna) => {
+              const valor = registro[coluna] || "";
               const placeholder = `{{${coluna}}}`;
               htmlProcessado = htmlProcessado.replace(
-                new RegExp(placeholder, "g"),
+                new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "g"),
                 valor,
               );
             });
@@ -549,15 +620,15 @@ export const createExecutarRunTool = (env: Env) =>
               turmaId: run.turmaId,
               templateId: run.templateId,
               csvId: run.csvId,
-              linhaIndex: i - 1, // -1 porque pulamos o cabeçalho
-              dados: JSON.stringify(valores), // Salvar como JSON string
+              linhaIndex: i, // Índice do array (0-based)
+              dados: JSON.stringify(registro), // Salvar como JSON string
               nome: nome,
               status: "completed",
               html: htmlProcessado, // HTML processado e personalizado
               generateUrl: `https://deco.chat/deco-camp-certificados/${i}`, // URL para visualização
               verificadoEm: null,
               emailEnviado: false,
-              emailDestinatario: email,
+              emailDestinatario: email || null,
               criadoEm: new Date(),
             });
 

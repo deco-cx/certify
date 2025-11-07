@@ -213,12 +213,26 @@ export function CreateRunModal(
                     ? (
                       (() => {
                         try {
-                          // As colunas são salvas como string separada por vírgulas, não JSON
-                          const colunas = csvsData.csvs.find((c: any) =>
+                          // Parse colunas - pode ser JSON array ou string separada por vírgulas
+                          const colunasRaw = csvsData.csvs.find((c: any) =>
                             c.id === csvId
-                          )!.colunas.split(",").map((col: string) =>
-                            col.trim()
-                          );
+                          )!.colunas;
+                          
+                          let colunas: string[];
+                          try {
+                            const colunasParsed = JSON.parse(colunasRaw);
+                            if (Array.isArray(colunasParsed)) {
+                              colunas = colunasParsed;
+                            } else {
+                              throw new Error("Colunas não é um array JSON válido");
+                            }
+                          } catch {
+                            // Formato antigo: string separada por vírgulas
+                            colunas = colunasRaw.split(",").map((col: string) =>
+                              col.trim()
+                            );
+                          }
+                          
                           if (colunas.length > 0) {
                             return colunas.map((coluna: string) => (
                               <SelectItem key={coluna} value={coluna}>
@@ -279,12 +293,26 @@ export function CreateRunModal(
                     ? (
                       (() => {
                         try {
-                          // As colunas são salvas como string separada por vírgulas, não JSON
-                          const colunas = csvsData.csvs.find((c: any) =>
+                          // Parse colunas - pode ser JSON array ou string separada por vírgulas
+                          const colunasRaw = csvsData.csvs.find((c: any) =>
                             c.id === csvId
-                          )!.colunas.split(",").map((col: string) =>
-                            col.trim()
-                          );
+                          )!.colunas;
+                          
+                          let colunas: string[];
+                          try {
+                            const colunasParsed = JSON.parse(colunasRaw);
+                            if (Array.isArray(colunasParsed)) {
+                              colunas = colunasParsed;
+                            } else {
+                              throw new Error("Colunas não é um array JSON válido");
+                            }
+                          } catch {
+                            // Formato antigo: string separada por vírgulas
+                            colunas = colunasRaw.split(",").map((col: string) =>
+                              col.trim()
+                            );
+                          }
+                          
                           if (colunas.length > 0) {
                             return colunas.map((coluna: string) => (
                               <SelectItem key={coluna} value={coluna}>
