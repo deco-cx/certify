@@ -7,7 +7,7 @@
  * - Updating run status
  * - Deleting runs
  */
-import { createPrivateTool } from "@deco/workers-runtime/mastra";
+import { createPrivateTool, createTool } from "@deco/workers-runtime/mastra";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { getDb } from "../db.ts";
@@ -235,7 +235,7 @@ export const createListarRunsTool = (env: Env) =>
   });
 
 export const createBuscarRunPorIdTool = (env: Env) =>
-  createPrivateTool({
+  createTool({
     id: "BUSCAR_RUN_POR_ID",
     description: "Get a specific run by ID",
     inputSchema: z.object({
